@@ -22,7 +22,7 @@ def acao_nome_jogador():
 
 # Classe Botao reaproveitada para todas as interações
 class Botao:
-    def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None):
+    def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None, mostrar = True):
         self.x = x
         self.y = y
         self.largura = largura
@@ -33,21 +33,23 @@ class Botao:
         self.cor_texto = cor_texto
         self.fonte = fonte or pygame.font.Font(None, 36)
         self.rect = pygame.Rect(x, y, largura, altura)
+        self.mostrar = mostrar
 
     def desenhar(self, tela):
         """
         Desenha o botão na tela.
         """
-        pygame.draw.rect(tela, self.cor, self.rect)
-        texto_surface = self.fonte.render(self.texto, True, self.cor_texto)
-        texto_rect = texto_surface.get_rect(center=self.rect.center)
-        tela.blit(texto_surface, texto_rect)
+        if self.mostrar:
+            pygame.draw.rect(tela, self.cor, self.rect, 2)
+            texto_surface = self.fonte.render(self.texto, True, self.cor_texto)
+            texto_rect = texto_surface.get_rect(center=self.rect.center)
+            tela.blit(texto_surface, texto_rect)
 
     def foi_clicado(self, posicao_mouse):
         """
         Verifica se o botão foi clicado e executa a ação, se existir.
         """
-        if self.rect.collidepoint(posicao_mouse):
+        if self.rect.collidepoint(posicao_mouse): 
             if self.acao:
                 self.acao()
             return True

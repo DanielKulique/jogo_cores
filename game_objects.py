@@ -34,6 +34,7 @@ class Botao:
         self.fonte = fonte or pygame.font.Font(None, 36)
         self.rect = pygame.Rect(x, y, largura, altura)
         self.mostrar = mostrar
+        self.ultimo_clique = 0
 
     def desenhar(self, tela):
         """
@@ -45,15 +46,9 @@ class Botao:
             texto_rect = texto_surface.get_rect(center=self.rect.center)
             tela.blit(texto_surface, texto_rect)
 
-    def foi_clicado(self, posicao_mouse):
-        """
-        Verifica se o botão foi clicado e executa a ação, se existir.
-        """
-        if self.rect.collidepoint(posicao_mouse): 
-            if self.acao:
-                self.acao()
-            return True
-        return False
+    def foi_clicado(self, pos):
+        return self.rect.collidepoint(pos)
+
 
     def criar_botao_voltar(acao_voltar):
         """
@@ -74,7 +69,9 @@ class Botao:
             acao=acao_voltar
         )
 
-class Botao_Especial:
+
+
+class BotaoEspecial:
     def __init__(self, x, y, largura, altura, texto, fonte, cor_normal, cor_hover, cor_sombra, cor_texto, acao=None):
         self.x = x
         self.y = y
@@ -142,7 +139,7 @@ class Botao_Especial:
         return False
 
     @staticmethod
-    def criar_botao_voltar():
+    def criar_botao_voltar(acao=None):
         """
         Cria um botão 'Voltar ao jogo →' com estilo configurado.
         """
@@ -160,12 +157,12 @@ class Botao_Especial:
             cor_hover=(247, 137, 0),  # Cor hover (#F78900)
             cor_sombra=(145, 81, 0),  # Cor da sombra (#915100)
             cor_texto=(255, 255, 255),  # Cor do texto (branco)
-            
+            acao=acao,
         )
 
 
 class Bolinha:
-    def __init__(self, x, y, cor, raio=30):
+    def __init__(self, x, y, cor, raio=65):
         self.x = x
         self.y = y
         self.cor = cor

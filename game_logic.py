@@ -1,6 +1,5 @@
-import pygame
-import sys
-from game_objects import Botao
+import pygame, random, sys
+from game_objects import Botao, BotaoEspecial, Bolinha
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Jogo:
@@ -14,29 +13,77 @@ class Jogo:
         self.fase_1 = "Desbloqueada"
         self.fase_2 = "Bloqueada"
         self.menu_atual = "menu_principal" 
+        self.ultimo_clique = pygame.time.get_ticks()
+        
+
+        self.cores_primarias = {
+            "vermelho": (255, 0, 0),
+            "amarelo": (255, 255, 0),
+            "azul": (0, 0, 255),
+        }
+
+        self.cores_secundarias = {
+            "laranja": (255, 165, 0),
+            "verde": (0, 128, 0),
+            "roxo": (128, 0, 128),
+        }
+
+        self.cores_neutras = {
+           "branco": (255, 255, 255),  # Máxima luz em todos os canais
+            "cinza": (128, 128, 128),  # Mistura equilibrada de preto e branco
+            "preto": (0, 0, 0),        # Ausência de luz
+            "marrom_claro": (210, 180, 140),  # Bege ou areia
+            "marrom_escuro": (139, 69, 19),   # Tom mais intenso de marrom
+        }
+        
+        self.bolinhas = []
+        self.iniciar_bolinhas()
 
         # Instanciando os botões
         self.botoes = {
             "professor": Botao(50, SCREEN_HEIGHT - 185, 260, 140, "Professor", (255, 0, 0), acao=self.acao_professor),
             "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.acao_configuracao),
             "nome": Botao((SCREEN_WIDTH - 750) // 2, (SCREEN_HEIGHT - 120) // 2 + 65, 750, 120, "Nome", (0, 0, 255), acao=self.acao_nome_jogador),
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda),
+            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda_jogo),
             "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=self.acao_som),
         }
         self.botoes_config = {
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda),
+            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda_jogo),
             "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=self.acao_som),
-            "menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
-            "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.menu_nome),
+            #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
+            #"config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.menu_nome),
             "sair": Botao(SCREEN_WIDTH - 137, SCREEN_HEIGHT - 120, 120, 120, "Sair", (255, 255, 0), acao=self.acao_sair)
         }
         self.botoes_menu_fases = {
-            "fase_1": Botao(500, SCREEN_HEIGHT - 371, 275, 50, "Fase 1", (150, 150, 255), acao=None),
+            "fase_1": Botao(500, SCREEN_HEIGHT - 371, 275, 50, "Fase 1", (150, 150, 255), acao=self.fase_cores_primarias),
             "fase_2": Botao(500, SCREEN_HEIGHT - 295, 275, 50, "Fase 2", (255, 150, 150), acao=None),
-            "menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
+            #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
             "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.acao_configuracao),
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda),
+            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda_fase1),
+            #"som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=self.acao_som),
+        }
+        self.botoes_fase_1 = {
+            #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
+            "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.acao_configuracao),
+            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda_fase1),
             "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=self.acao_som),
+        }
+
+
+        self.botao_especial_menu = {
+            "menu_especial": BotaoEspecial(
+                x=(SCREEN_WIDTH - 750)//2 +260,
+                y=(SCREEN_HEIGHT - 120) // 2 - 70,
+                largura=210,
+                altura=90,
+                texto=f"MENU",
+                cor_normal=(255, 220, 140),
+                cor_hover=(30, 130, 220),
+                cor_sombra=(204, 153, 0),
+                cor_texto=(0, 0, 0),
+                fonte=pygame.font.SysFont("Arial", 40),
+                acao=self.menu_nome,  # Define a ação ao clicar no botão
+            )
         }
 
         # Carregando o layout de fundo do menu inicial
@@ -48,6 +95,10 @@ class Jogo:
 
         self.layout_menu_fases = pygame.image.load("assets/layouts/fase_1_desbloqueada.png")
         self.layout_menu_fases = pygame.transform.smoothscale(self.layout_menu_fases, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        self.layout_fase_1 = pygame.image.load("assets/layouts/tela_escolha_cor_primaria.png")
+        self.layout_fase_1 = pygame.transform.smoothscale(self.layout_fase_1, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
 
     def desenhar_menu(self):
         """Desenha o layout do menu inicial com os botões."""
@@ -76,19 +127,75 @@ class Jogo:
         for botao in self.botoes_config.values():
             botao.desenhar(self.tela)
 
-    def verificar_clique(self, pos):
-        """Verifica qual botão foi clicado."""
-        atual = self.menu_atual
+    def iniciar_bolinhas(self):
+        # Sorteia uma bolinha neutra aleatoriamente
+        indice_neutra = random.randint(0, 3)
+        
+        coordenadas = [
+            (815, 216),  # Primeira bolinha
+            (1107, 216),  # Segunda bolinha
+            (815, 464),  # Terceira bolinha
+            (1107, 464),  # Quarta bolinha
+        ]
 
-        if atual == "menu_principal":
+        # Criação das bolinhas
+        for i, (x, y) in enumerate(coordenadas):
+            if i == indice_neutra:  # Esta bolinha recebe uma cor neutra
+                cor = random.choice(list(self.cores_neutras.values()))
+            else:  # As demais recebem cores primárias
+                cor = random.choice(list(self.cores_primarias.values()))
+            self.bolinhas.append(Bolinha(x, y, cor))
+
+    def verificar_clique_bolinha(self, pos):
+        """
+        Verifica qual bolinha foi clicada e altera a cor dela
+        se for uma cor primária.
+        """
+        for bolinha in self.bolinhas:
+            if bolinha.foi_clicada(pos):
+                if bolinha.cor in self.cores_primarias.values():
+                    # Se a bolinha for primária, muda a cor dela para uma cor neutra
+                    nova_cor = random.choice(list(self.cores_neutras.values()))
+                    bolinha.cor = nova_cor
+                    print(f"Bolinha clicada! Cor alterada para {nova_cor}")
+                break
+
+    def desenhar_fase_cores_primarias(self):
+        self.tela.blit(self.layout_fase_1, (0, 0))
+
+        for botao in self.botoes_fase_1.values():
+            botao.desenhar(self.tela)
+
+        # Desenho das bolinhas na tela
+        for bolinha in self.bolinhas:
+            bolinha.desenhar(self.tela)
+
+    def fase_cores_primarias(self):
+        print("Iniciando Fase 1")
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    x, y = event.pos
+                    print(f"Posição do clique: x = {x}, y = {y}")
+                    self.verificar_clique(pos)
+            self.desenhar_fase_cores_primarias()
+            pygame.display.flip()
+
+    def verificar_clique(self, pos):
+        
+
+        if self.menu_atual == "menu_principal":
             botoes = self.botoes
-        elif atual == "menu_config":
+        elif self.menu_atual == "menu_config":
             botoes = self.botoes_config
-        elif atual == "menu_fases":
+        elif self.menu_atual == "menu_fases":
             botoes = self.botoes_menu_fases
         else:
             return
-
 
         for botao in botoes.values():
             if botao.foi_clicado(pos):
@@ -97,73 +204,113 @@ class Jogo:
                 return
 
 
+
+
     def menu_nome(self):
         """
         Exibe o menu inicial. O botão 'Voltar ao jogo →' será mostrado apenas se o nome do jogador já tiver sido inserido.
+        O botão 'Menu' estará sempre visível.
         """
         self.menu_atual = "menu_principal"
-        botao_voltar = None
 
-        if self.jogador:  # Verifica se o nome do jogador já foi inserido
-            botao_voltar = Botao(
+        # Criar o botão 'Voltar ao jogo →' apenas se o nome do jogador foi inserido
+        botao_voltar = None
+        if self.jogador:
+            botao_voltar = BotaoEspecial(
                 x=600,
                 y=SCREEN_HEIGHT - 200,
-                largura=300,
+                largura=500,
                 altura=60,
-                texto=f"Continuar Como {self.jogador}",
-                cor=(50, 150, 250),
-                cor_texto=(255, 255, 255),
+                texto=f"{((self.jogador).split()[0]).upper()}",
+                cor_normal=(255, 220, 140),
+                cor_hover=(30, 130, 220),
+                cor_sombra=(204, 153, 0),
+                cor_texto=(0, 0, 0),
                 fonte=pygame.font.SysFont("Arial", 40),
+                acao=self.menu_fases,  # Define a ação ao clicar no botão
             )
 
+
         while self.running:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            is_hovered = botao_voltar and botao_voltar.rect.collidepoint(mouse_x, mouse_y)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    tempo_atual = pygame.time.get_ticks()
+                    if tempo_atual - self.ultimo_clique < 200:  # Delay de 200ms
+                        continue  # Ignora se o clique for muito próximo do último
+                    self.ultimo_clique = tempo_atual
+                    
                     pos = pygame.mouse.get_pos()
                     self.verificar_clique(pos)
-
                     # Verifica clique no botão 'Voltar ao jogo →'
                     if botao_voltar and botao_voltar.foi_clicado(pos):
-                        print("Botão 'Voltar ao jogo →' clicado!")
-                        self.menu_fases()
+                        print(f"Botão 'Continuar Como {self.jogador}' clicado!")
+                        self.menu_fases()  # Chama a função que exibe o menu de fases
+                        return
+                    
 
-                elif event.type == pygame.KEYDOWN:
-                    if not self.jogador:    
-                        self.acao_nome_jogador()
-
+            # Desenha o menu
             self.desenhar_menu()
 
-            # Desenha o botão 'Voltar ao jogo →' se o nome do jogador foi inserido
+            # Desenha o botão 'Voltar ao jogo →' apenas se o nome do jogador foi inserido
             if botao_voltar:
-                botao_voltar.desenhar(self.tela)
+                botao_voltar.desenhar(self.tela, ativo=is_hovered)
+
 
             pygame.display.flip()
             self.clock.tick(60)
 
-    # Métodos de ação para os botões
-    def acao_professor(self):
-        print("Ação: Professor")
-        # Adicione aqui a lógica para mudar para a tela do professor
-
     def acao_configuracao(self):
         self.menu_atual = "menu_config"
         print("Ação: Configuração")
-        # Adicione aqui a lógica para mudar para a tela de configuração
+
+        # Criar o botão com novas coordenadas
+        botao_menu = BotaoEspecial(
+            x=(SCREEN_WIDTH - 750) // 2 + 245,  # Exemplo de novo valor para 'x'
+            y=(SCREEN_HEIGHT - 120) // 2 - 160,  # Exemplo de novo valor para 'y'
+            largura=210,
+            altura=90,
+            texto="MENU",
+            cor_normal=(255, 220, 140),
+            cor_hover=(30, 130, 220),
+            cor_sombra=(204, 153, 0),
+            cor_texto=(0, 0, 0),
+            fonte=pygame.font.SysFont("Arial", 40),
+            acao=self.menu_nome,
+        )
+
         while self.running:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
+
+                    # Verifica os cliques nos botões de configuração
                     for botao in self.botoes_config.values():
                         self.verificar_clique(pos)
 
+                    #Verifica o clique no botão especial menu
+                    if botao_menu.foi_clicado(pos):
+                        print("Botão menu foi clicado")
+                        botao_menu.acao()  # Chama a ação associada ao botão
 
+            # Desenha o layout da configuração
             self.desenhar_configuracao()
+
+            # Desenha o botão especial (com efeito hover)
+            botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
+
+            # Atualiza a tela
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -201,6 +348,7 @@ class Jogo:
                         input_active = True
                     else:
                         input_active = False
+                        self.verificar_clique(event.pos)
                         return
 
                 # Entrada de texto
@@ -230,25 +378,131 @@ class Jogo:
             self.clock.tick(60)
 
     def menu_fases(self):
-        print("Acao_menu_fases")
-        self.menu_atual = "menu_fases"
+            print("Acao_menu_fases")
+            
+            botao_menu = self.botao_especial_menu["menu_especial"]
+            
+            self.menu_atual = "menu_fases"
+            while self.running:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        pos = pygame.mouse.get_pos()
+                        self.verificar_clique(pos)  # Verifica os cliques nos botões principais
+                        
+                        # Verifique o clique no botão especial menu
+                        if botao_menu.foi_clicado(pos):
+                            print("Botao menu foi clicado")
+                            botao_menu.acao()
+                        
+                # Desenha o layout do menu de fases
+                self.desenhar_menu_fases()
+
+                # Desenha o botão especial (com efeito hover)
+                botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
+                
+                # Atualiza a tela
+                pygame.display.flip()
+                self.clock.tick(60)
+
+
+
+    def acao_ajuda_jogo(self):
+        print("Ação: Ajuda")
+        
+        # Carregar as imagens para exibir na tela de ajuda
+        imagens_ajuda = [
+            pygame.image.load("assets/layouts/Ajuda_1.png"),
+            pygame.image.load("assets/layouts/Ajuda_2.png"),
+            pygame.image.load("assets/layouts/Ajuda_3.png"),
+            pygame.image.load("assets/layouts/Ajuda_4.png"),
+            pygame.image.load("assets/layouts/Ajuda_5.png"),
+        ]
+        
+        # Redimensionar as imagens conforme necessário (se necessário)
+        imagens_ajuda = [pygame.transform.smoothscale(img, (SCREEN_WIDTH, SCREEN_HEIGHT)) for img in imagens_ajuda]
+
+        # Variáveis para controlar o tempo de exibição das imagens
+        tempo_espera = 3000  # Tempo de espera entre as imagens (em milissegundos)
+        indice_imagem = 0
+        tempo_inicio = pygame.time.get_ticks()  # Marca o tempo inicial
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    self.verificar_clique(pos)
 
-            self.desenhar_menu_fases()
+            # Verificar se o tempo de espera passou
+            tempo_atual = pygame.time.get_ticks()
+            if tempo_atual - tempo_inicio > tempo_espera:
+                indice_imagem += 1
+                if indice_imagem >= len(imagens_ajuda):
+                    break  # Finaliza a função após exibir todas as imagens
+                tempo_inicio = tempo_atual  # Atualiza o tempo de início para a próxima imagem
+
+            # Desenhar a imagem atual na tela
+            self.tela.fill((0, 0, 0))  # Limpa a tela com fundo preto
+            self.tela.blit(imagens_ajuda[indice_imagem], (0, 0))  # Exibe a imagem
+
             pygame.display.flip()
-            self.clock.tick(60)
+            self.clock.tick(60)  # Limita o loop a 60 quadros por segundo
+
+    def acao_ajuda_fase1(self):
+        print("acao_ajuda_fase1")        
+        # Carregar as imagens para exibir na tela de ajuda
+        imagens_ajuda = [
+            pygame.image.load("assets/layouts/videos_cores_primarias.png"),
+            pygame.image.load("assets/layouts/tela_escolha_cor_primaria.png"),
+            pygame.image.load("assets/layouts/tutorial_seleciona_cor_primaria.png"),
+            pygame.image.load("assets/layouts/tutorial_erra_cor_primaria.png"),
+            pygame.image.load("assets/layouts/tutorial_tenta_novamente.png"),
+            pygame.image.load("assets/layouts/tutorial_tenta_novamente_2.png"),
+            pygame.image.load("assets/layouts/mensagem_acertou.png"),
+        ]
+        
+        # Redimensionar as imagens conforme necessário (se necessário)
+        imagens_ajuda = [pygame.transform.smoothscale(img, (SCREEN_WIDTH, SCREEN_HEIGHT)) for img in imagens_ajuda]
+
+        # Variáveis para controlar o tempo de exibição das imagens
+        tempo_espera = 3000  # Tempo de espera entre as imagens (em milissegundos)
+        indice_imagem = 0
+        tempo_inicio = pygame.time.get_ticks()  # Marca o tempo inicial
+
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            # Verificar se o tempo de espera passou
+            tempo_atual = pygame.time.get_ticks()
+            if tempo_atual - tempo_inicio > tempo_espera:
+                indice_imagem += 1
+                if indice_imagem >= len(imagens_ajuda):
+                    break  # Finaliza a função após exibir todas as imagens
+                tempo_inicio = tempo_atual  # Atualiza o tempo de início para a próxima imagem
+
+            # Desenhar a imagem atual na tela
+            self.tela.fill((0, 0, 0))  # Limpa a tela com fundo preto
+            self.tela.blit(imagens_ajuda[indice_imagem], (0, 0))  # Exibe a imagem
+
+            pygame.display.flip()
+            self.clock.tick(60)  # Limita o loop a 60 quadros por segun
 
 
-    def acao_ajuda(self):
-        print("Ação: Ajuda")
+    def acao_ajuda_fase2(self):
+        print("acao_ajuda_faseq")
         # Adicione aqui a lógica para exibir a tela de ajuda
+
+    def acao_professor(self):
+        print("Ação: Professor")
+        # Adicione aqui a lógica para mudar para a tela do professor
 
     def acao_som(self):
         print("Ação: Som")

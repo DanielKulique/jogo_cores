@@ -1,4 +1,4 @@
-import pygame, random, sys
+import pygame, random, sys, time
 from game_objects import Botao, BotaoEspecial, Bolinha
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 
@@ -14,7 +14,7 @@ class Jogo:
         self.fase_2 = "Bloqueada"
         self.menu_atual = "menu_principal" 
         self.ultimo_clique = pygame.time.get_ticks()
-        
+        self.nivel_fase_1 = "primaria"
 
         self.cores_primarias = {
             "vermelho": (255, 0, 0),
@@ -96,8 +96,15 @@ class Jogo:
         self.layout_menu_fases = pygame.image.load("assets/layouts/fase_1_desbloqueada.png")
         self.layout_menu_fases = pygame.transform.smoothscale(self.layout_menu_fases, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-        self.layout_fase_1 = pygame.image.load("assets/layouts/tela_escolha_cor_primaria.png")
-        self.layout_fase_1 = pygame.transform.smoothscale(self.layout_fase_1, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        #fase_1
+        self.layout_nivel_1 = pygame.image.load("assets/layouts/tela_escolha_cor_primaria.png")
+        self.layout_nivel_1 = pygame.transform.smoothscale(self.layout_nivel_1, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        self.layout_nivel_2 = pygame.image.load("assets/layouts/tutorial_cores_secundarias.png")
+        self.layout_nivel_2 = pygame.transform.smoothscale(self.layout_nivel_2, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        self.layout_acertou_nivel_1 = pygame.image.load("assets/layouts/mensagem_acertou.png")
+        self.layout_acertou_nivel_1 = pygame.transform.smoothscale(self.layout_acertou_nivel_1, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
     def desenhar_menu(self):
@@ -143,7 +150,10 @@ class Jogo:
             if i == indice_neutra:  # Esta bolinha recebe uma cor neutra
                 cor = random.choice(list(self.cores_neutras.values()))
             else:  # As demais recebem cores primárias
-                cor = random.choice(list(self.cores_primarias.values()))
+                if self.nivel_fase_1 == "primaria":
+                    cor = random.choice(list(self.cores_primarias.values()))
+                else:
+                    cor = random.choice(list(self.cores_secundarias.values()))
             self.bolinhas.append(Bolinha(x, y, cor))
 
     def verificar_clique_bolinha(self, pos):
@@ -153,15 +163,25 @@ class Jogo:
         """
         for bolinha in self.bolinhas:
             if bolinha.foi_clicada(pos):
-                if bolinha.cor in self.cores_primarias.values():
-                    # Se a bolinha for primária, muda a cor dela para uma cor neutra
-                    nova_cor = random.choice(list(self.cores_neutras.values()))
-                    bolinha.cor = nova_cor
+                if self.nivel_fase_1 == "primaria":
+                    nivel = self.cores_primarias.values() # nivel_1 cores primarias
+                else: 
+                    nivel = self.cores_secundarias.values() #nivel_2 cores secundarias
+                
+                if bolinha.cor in nivel:
+                    # Se a bolinha for primária/secundaria, jogardor vence a rodada //parabeniza e chama o prox nivel
+                    #self.nivel_fase_1 = "secundaria"
+                    return True
                     print(f"Bolinha clicada! Cor alterada para {nova_cor}")
-                break
+                else:
+                    return False # bolinha errada
+
 
     def desenhar_fase_cores_primarias(self):
-        self.tela.blit(self.layout_fase_1, (0, 0))
+        if self.nivel_fase_1 == "primaria":
+            self.tela.blit(self.layout_nivel_1, (0, 0))
+        else:
+            self.tela.blit(self.layout_nivel_2, (0, 0))
 
         for botao in self.botoes_fase_1.values():
             botao.desenhar(self.tela)
@@ -171,6 +191,8 @@ class Jogo:
             bolinha.desenhar(self.tela)
 
     def fase_cores_primarias(self):
+        self.menu_atual = "fase_cores_primarias"
+
         print("Iniciando Fase 1")
         while self.running:
             for event in pygame.event.get():
@@ -182,8 +204,38 @@ class Jogo:
                     x, y = event.pos
                     print(f"Posição do clique: x = {x}, y = {y}")
                     self.verificar_clique(pos)
+                    #PAREI AQUI, ESPERO LEMBRAR AMANHA! ------------------------------------------------<>FUCK YOU,BOLINHAS
+                    # Verificar o hover sobre as bolinhas
+                    for bolinha in self.bolinhas:
+                        bolinha.verificar_hover(pos)
+
+                    escolhida = self.verificar_clique_bolinha(pos)
+                    if escolhida and self.nivel_fase_1 == "primaria":
+                        print("acertou a cor primaria")
+                        self.nivel_fase_1 = "secundaria"
+                        self.tela.blit(self.layout_acertou_nivel_1, (0, 0))
+                        pygame.display.flip()
+                        #delay
+                        tempo_inicio = pygame.time.get_ticks()
+                        delay = 3000  # 10 segundos
+
+                        while True:
+                            tempo_atual = pygame.time.get_ticks()
+                            if tempo_atual - tempo_inicio >= delay:
+                                print("10 segundos se passaram!")
+                                break
+
+                        self.desenhar_fase_cores_primarias()
+                        pygame.display.flip()
+                        self.iniciar_bolinhas()
+                    elif (escolhida and self.nivel_fase_1 == "secundaria"):
+                        # chamar fase_cores_secundarias()
+                        pass
+
             self.desenhar_fase_cores_primarias()
             pygame.display.flip()
+            self.clock.tick(60)
+
 
     def verificar_clique(self, pos):
         
@@ -266,8 +318,12 @@ class Jogo:
             self.clock.tick(60)
 
     def acao_configuracao(self):
-        self.menu_atual = "menu_config"
+        
         print("Ação: Configuração")
+        if self.menu_atual == "menu_principal":
+            acao_especial = self.menu_nome
+        elif self.menu_atual == "menu_fases":
+            acao_especial = self.menu_fases
 
         # Criar o botão com novas coordenadas
         botao_menu = BotaoEspecial(
@@ -280,10 +336,11 @@ class Jogo:
             cor_hover=(30, 130, 220),
             cor_sombra=(204, 153, 0),
             cor_texto=(0, 0, 0),
-            fonte=pygame.font.SysFont("Arial", 40),
-            acao=self.menu_nome,
+            fonte=pygame.font.SysFont("Arial", 40), 
+            acao=acao_especial,
         )
 
+        self.menu_atual = "menu_config"
         while self.running:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             

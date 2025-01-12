@@ -20,6 +20,23 @@ def acao_ajuda():
 def acao_nome_jogador():
     print("Acessando nome do jogador!")
 
+class Jogador:
+    def __init__(self, nome, pontuacao_professor, pontuacao_estudante, fase_1, fase_2, data):
+        self.nome = nome
+        self.pontuacao_professor = pontuacao_professor
+        self.pontuacao_estudante = pontuacao_estudante
+        self.fase_1 = False
+        self.fase_2 = False
+        self.data = data
+
+        def completar_fase(self, fase):
+            if fase == 1:
+                self.fase_1 = True
+            elif fase == 2:
+                self.fase_2 = True
+            else:
+                raise ValueError("Fase inválida. Use 1 ou 2.")
+
 # Classe Botao reaproveitada para todas as interações
 class Botao:
     def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None, mostrar = True):
@@ -162,12 +179,14 @@ class BotaoEspecial:
 
 
 class Bolinha:
-    def __init__(self, x, y, cor, raio=65):
+    def __init__(self, x, y, cor, raio=67):
         self.x = x
         self.y = y
         self.cor = cor
         self.raio = raio
         self.rect = pygame.Rect(x - raio, y - raio, raio * 2, raio * 2)  # Área de clique
+        self.contorno_ativo = False  # Flag para indicar se o mouse está sobre a bolinha
+
 
     def desenhar(self, tela):
         """
@@ -175,11 +194,23 @@ class Bolinha:
         """
         pygame.draw.circle(tela, self.cor, (self.x, self.y), self.raio)
 
+        if self.contorno_ativo:
+            pygame.draw.circle(tela, (255, 255, 0), (self.x, self.y), self.raio + 5, 5)  # Contorno amarelo
+
     def foi_clicada(self, posicao_mouse):
         """
         Verifica se a bolinha foi clicada.
         """
         return self.rect.collidepoint(posicao_mouse)
+
+    def verificar_hover(self, posicao_mouse):
+        """
+        Verifica se o mouse está sobre a bolinha e ativa o contorno.
+        """
+        if self.rect.collidepoint(posicao_mouse):
+            self.contorno_ativo = True  # Ativa o contorno quando o mouse estiver sobre a bolinha
+        else:
+            self.contorno_ativo = False  # Desativa o contorno quando o mouse sair
 
 
 

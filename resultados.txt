@@ -1,0 +1,72 @@
+Jogador: 
+Pontuação Estudante: 
+Pontuação Professor: 0
+Fase 1 Concluída: False
+Fase 2 Concluída: False
+Tentativas Fase 1 Nível 1: 0
+Tentativas Fase 1 Nível 2: 0
+Tentativas Fase 2 Nível 1: 0
+Tentativas Fase 2 Nível 2: 0
+Pontuação Final: None
+Data: 2025-01-12 23:36:53
+--------------------------------------------------
+Jogador: 
+Pontuação Estudante: 
+Pontuação Professor: 0
+Fase 1 Concluída: False
+Fase 2 Concluída: False
+Tentativas Fase 1 Nível 1: 0
+Tentativas Fase 1 Nível 2: 0
+Tentativas Fase 2 Nível 1: 0
+Tentativas Fase 2 Nível 2: 0
+Pontuação Final: None
+Data: 2025-01-12 23:37:35
+--------------------------------------------------
+Jogador: 
+Pontuação Estudante: 
+Pontuação Professor: 0
+Fase 1 Concluída: False
+Fase 2 Concluída: False
+Tentativas Fase 1 Nível 1: 0
+Tentativas Fase 1 Nível 2: 0
+Tentativas Fase 2 Nível 1: 0
+Tentativas Fase 2 Nível 2: 0
+Pontuação Final: None
+Data: 2025-01-12 23:37:40
+--------------------------------------------------
+Jogador: 
+Pontuação Estudante: 
+Pontuação Professor: 0
+Fase 1 Concluída: False
+Fase 2 Concluída: False
+Tentativas Fase 1 Nível 1: 0
+Tentativas Fase 1 Nível 2: 0
+Tentativas Fase 2 Nível 1: 0
+Tentativas Fase 2 Nível 2: 0
+Pontuação Final: None
+Data: 2025-01-12 23:40:13
+--------------------------------------------------
+Jogador: 
+Pontuação Estudante: 
+Pontuação Professor: 0
+Fase 1 Concluída: False
+Fase 2 Concluída: False
+Tentativas Fase 1 Nível 1: 0
+Tentativas Fase 1 Nível 2: 0
+Tentativas Fase 2 Nível 1: 0
+Tentativas Fase 2 Nível 2: 0
+Pontuação Final: None
+Data: 2025-01-12 23:41:26
+--------------------------------------------------
+Jogador: daniel
+Pontuação Estudante: 
+Pontuação Professor: 0
+Fase 1 Concluída: False
+Fase 2 Concluída: False
+Tentativas Fase 1 Nível 1: 0
+Tentativas Fase 1 Nível 2: 0
+Tentativas Fase 2 Nível 1: 0
+Tentativas Fase 2 Nível 2: 0
+Pontuação Final: None
+Data: 2025-01-12 23:41:29
+--------------------------------------------------

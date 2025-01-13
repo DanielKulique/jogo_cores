@@ -21,21 +21,68 @@ def acao_nome_jogador():
     print("Acessando nome do jogador!")
 
 class Jogador:
-    def __init__(self, nome, pontuacao_professor, pontuacao_estudante, fase_1, fase_2, data):
+    def __init__(self, nome, pontuacao_professor, pontuacao_estudante, data):
         self.nome = nome
         self.pontuacao_professor = pontuacao_professor
         self.pontuacao_estudante = pontuacao_estudante
+        self.tentativas_fase1_nivel_1 = 0
+        self.tentativas_fase1_nivel_2 = 0
+        self.tentativas_fase2_nivel_1 = 0
+        self.tentativas_fase2_nivel_2 = 0
         self.fase_1 = False
         self.fase_2 = False
         self.data = data
 
-        def completar_fase(self, fase):
-            if fase == 1:
-                self.fase_1 = True
-            elif fase == 2:
-                self.fase_2 = True
-            else:
-                raise ValueError("Fase inválida. Use 1 ou 2.")
+    def completar_fase(self, fase):
+        if fase == 1:
+            self.fase_1 = True
+        elif fase == 2:
+            self.fase_2 = True
+        else:
+            raise ValueError("Fase inválida. Use 1 ou 2.")
+
+    def registrar_tentativa(self, fase, nivel):
+        if fase == 1:
+            if nivel == "primaria":
+                self.tentativas_fase1_nivel_1 += 1
+            elif nivel == "secundaria":
+                self.tentativas_fase1_nivel_2 += 1
+        elif fase == 2:
+            if nivel == "primaria":
+                self.tentativas_fase2_nivel_1 += 1
+            elif nivel == "secundaria":
+                self.tentativas_fase2_nivel_2 += 1
+        else:
+            raise ValueError("Fase ou nível inválidos.")
+
+    def calcular_pontuacao(self):
+        pontuacao = self.pontuacao_estudante
+        if self.fase_1:
+            pontuacao += (100 - self.tentativas_fase1_nivel_1 - self.tentativas_fase1_nivel_2)
+        if self.fase_2:
+            pontuacao += (100 - self.tentativas_fase2_nivel_1 - self.tentativas_fase2_nivel_2)
+        #return max(0, pontuacao)
+
+    def __str__(self):
+        return (f"Jogador: {self.nome}\n"
+                f"Pontuação Estudante: {self.pontuacao_estudante}\n"
+                f"Pontuação Professor: {self.pontuacao_professor}\n"
+                f"Fase 1 Concluída: {self.fase_1}\n"
+                f"Fase 2 Concluída: {self.fase_2}\n"
+                f"Tentativas Fase 1 Nível 1: {self.tentativas_fase1_nivel_1}\n"
+                f"Tentativas Fase 1 Nível 2: {self.tentativas_fase1_nivel_2}\n"
+                f"Tentativas Fase 2 Nível 1: {self.tentativas_fase2_nivel_1}\n"
+                f"Tentativas Fase 2 Nível 2: {self.tentativas_fase2_nivel_2}\n"
+                f"Pontuação Final: {self.calcular_pontuacao()}\n"
+                f"Data: {self.data}")
+
+    def salvar_log(self, caminho_arquivo="resultados.txt"):
+        """
+        Salva a representação do jogador em um arquivo de log.
+        """
+        with open(caminho_arquivo, "a", encoding="utf-8") as arquivo:
+            arquivo.write(self.__str__() + "\n" + "-" * 50 + "\n")
+
 
 # Classe Botao reaproveitada para todas as interações
 class Botao:
@@ -178,39 +225,55 @@ class BotaoEspecial:
         )
 
 
+
+
+
 class Bolinha:
     def __init__(self, x, y, cor, raio=67):
         self.x = x
         self.y = y
         self.cor = cor
         self.raio = raio
-        self.rect = pygame.Rect(x - raio, y - raio, raio * 2, raio * 2)  # Área de clique
-        self.contorno_ativo = False  # Flag para indicar se o mouse está sobre a bolinha
+        self.hover = False  # Novo atributo para hover
 
+    def foi_clicada(self, pos):
+        """Verifica se o clique foi dentro da bolinha."""
+        mx, my = pos
+        distancia = ((self.x - mx) ** 2 + (self.y - my) ** 2) ** 0.5
+        return distancia <= self.raio
+
+    def verificar_hover(self, pos):
+        """Verifica se o mouse está sobre a bolinha."""
+        mx, my = pos
+        distancia = ((self.x - mx) ** 2 + (self.y - my) ** 2) ** 0.5
+        self.hover = distancia <= self.raio
 
     def desenhar(self, tela):
-        """
-        Desenha a bolinha na tela.
-        """
+        """Desenha a bolinha com um efeito hover que inclui borda preta e brilho amarelo."""
+        if self.hover:
+            # Desenhar o efeito hover preto em torno da bolinha
+            pygame.draw.circle(tela, (0, 0, 0), (self.x, self.y), self.raio + 5)
+            raio1 = self.raio + 2
+            brilho = 30
+            for i in range (5):
+                # Desenhar o brilho amarelo translúcido fora dos limites do hover preto
+                raio1 += 3
+                brilho += 5
+                brilho_raio = raio1  # Ajuste para manter o brilho além da borda preta
+                brilho_cor = (255, 255, 0, brilho)  # Amarelo translúcido
+                surface = pygame.Surface((brilho_raio * 2, brilho_raio * 2), pygame.SRCALPHA)
+                pygame.draw.circle(surface, brilho_cor, (brilho_raio, brilho_raio), brilho_raio)
+                pygame.draw.circle(surface, (0, 0, 0, 0), (brilho_raio, brilho_raio), self.raio + 5)  # Recorte central
+                tela.blit(surface, (self.x - brilho_raio, self.y - brilho_raio))
+                    
+        # Desenhar a bolinha principal
         pygame.draw.circle(tela, self.cor, (self.x, self.y), self.raio)
 
-        if self.contorno_ativo:
-            pygame.draw.circle(tela, (255, 255, 0), (self.x, self.y), self.raio + 5, 5)  # Contorno amarelo
 
-    def foi_clicada(self, posicao_mouse):
-        """
-        Verifica se a bolinha foi clicada.
-        """
-        return self.rect.collidepoint(posicao_mouse)
 
-    def verificar_hover(self, posicao_mouse):
-        """
-        Verifica se o mouse está sobre a bolinha e ativa o contorno.
-        """
-        if self.rect.collidepoint(posicao_mouse):
-            self.contorno_ativo = True  # Ativa o contorno quando o mouse estiver sobre a bolinha
-        else:
-            self.contorno_ativo = False  # Desativa o contorno quando o mouse sair
+
+
+
 
 
 

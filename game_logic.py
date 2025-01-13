@@ -1,6 +1,7 @@
 import pygame, random, sys, time
-from game_objects import Botao, BotaoEspecial, Bolinha
+from game_objects import Botao, BotaoEspecial, Bolinha, Jogador
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
+from datetime import datetime
 
 class Jogo:
     def __init__(self):
@@ -9,7 +10,6 @@ class Jogo:
         pygame.display.set_caption("Menu Inicial")
         self.clock = pygame.time.Clock()
         self.running = True
-        self.jogador = ""
         self.fase_1 = "Desbloqueada"
         self.fase_2 = "Bloqueada"
         self.menu_atual = "menu_principal" 
@@ -38,6 +38,13 @@ class Jogo:
         
         self.bolinhas = []
         self.iniciar_bolinhas()
+
+        self.jogador = Jogador(
+            nome = "",
+            pontuacao_professor = 0,
+            pontuacao_estudante = "",
+            data=datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+            )
 
         # Instanciando os botões
         self.botoes = {
@@ -107,6 +114,20 @@ class Jogo:
         self.layout_acertou_nivel_1 = pygame.transform.smoothscale(self.layout_acertou_nivel_1, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
+    #ENCAPSULANDO FUNCOES DA CLASSE JOGADOR!
+    def registrar_tentativa(self, fase, nivel, acertou):
+        """encapsula o registro de tentativas no jogador"""
+        self.jogador.registrar_tentativa(fase, nivel, acertou)
+
+    def completar_fase(self, fase):
+        """marca as fases concluidas"""
+        self.jogador.completar_fase(fase)
+    
+    def salva_estatisticas(self):
+        """salva progresso jogador"""
+        self.jogador.salvar_log()
+    #FIM ENCAPSULAMENTO
+
     def desenhar_menu(self):
         """Desenha o layout do menu inicial com os botões."""
         # Desenhar o fundo
@@ -152,29 +173,28 @@ class Jogo:
             else:  # As demais recebem cores primárias
                 if self.nivel_fase_1 == "primaria":
                     cor = random.choice(list(self.cores_primarias.values()))
+                
                 else:
                     cor = random.choice(list(self.cores_secundarias.values()))
             self.bolinhas.append(Bolinha(x, y, cor))
 
     def verificar_clique_bolinha(self, pos):
         """
-        Verifica qual bolinha foi clicada e altera a cor dela
-        se for uma cor primária.
+        Verifica qual bolinha foi clicada e retorna se ela está correta ou não.
         """
         for bolinha in self.bolinhas:
             if bolinha.foi_clicada(pos):
                 if self.nivel_fase_1 == "primaria":
-                    nivel = self.cores_primarias.values() # nivel_1 cores primarias
-                else: 
-                    nivel = self.cores_secundarias.values() #nivel_2 cores secundarias
+                    nivel = self.cores_primarias.values()  # nivel_1 cores primárias
+                elif self.nivel_fase_1 == "secundaria":
+                    nivel = self.cores_secundarias.values()  # nivel_2 cores secundárias
                 
                 if bolinha.cor in nivel:
-                    # Se a bolinha for primária/secundaria, jogardor vence a rodada //parabeniza e chama o prox nivel
-                    #self.nivel_fase_1 = "secundaria"
-                    return True
-                    print(f"Bolinha clicada! Cor alterada para {nova_cor}")
-                else:
-                    return False # bolinha errada
+                    return True  # Bolinha correta foi clicada
+
+        # Se nenhuma bolinha válida foi clicada
+        return False
+
 
 
     def desenhar_fase_cores_primarias(self):
@@ -199,6 +219,11 @@ class Jogo:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEMOTION:
+                    # Verificar hover para todas as bolinhas
+                    pos = pygame.mouse.get_pos()
+                    for bolinha in self.bolinhas or self.cores_neutras:
+                        bolinha.verificar_hover(pos)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     x, y = event.pos
@@ -210,7 +235,7 @@ class Jogo:
                         bolinha.verificar_hover(pos)
 
                     escolhida = self.verificar_clique_bolinha(pos)
-                    if escolhida and self.nivel_fase_1 == "primaria":
+                    if escolhida and self.nivel_fase_1 == "primaria": #SE ACERTAR O PRIMEIRO NIVEL DA PRIMEIRA FASE
                         print("acertou a cor primaria")
                         self.nivel_fase_1 = "secundaria"
                         self.tela.blit(self.layout_acertou_nivel_1, (0, 0))
@@ -230,7 +255,14 @@ class Jogo:
                         self.iniciar_bolinhas()
                     elif (escolhida and self.nivel_fase_1 == "secundaria"):
                         # chamar fase_cores_secundarias()
+                        print("acertou cor secundaria! parabens")
                         pass
+                    elif not escolhida and self.nivel_fase_1 == "primaria":
+                        print("errou cor primaria! tente novamente")
+
+                    elif not escolhida and self.nivel_fase_1 == "secundaria":
+                        print("errou cor secundaria! tente novamente")
+
 
             self.desenhar_fase_cores_primarias()
             pygame.display.flip()
@@ -273,7 +305,7 @@ class Jogo:
                 y=SCREEN_HEIGHT - 200,
                 largura=500,
                 altura=60,
-                texto=f"{((self.jogador).split()[0]).upper()}",
+                texto=f"{((self.jogador.nome))}",
                 cor_normal=(255, 220, 140),
                 cor_hover=(30, 130, 220),
                 cor_sombra=(204, 153, 0),
@@ -414,9 +446,17 @@ class Jogo:
                         # Apaga o último caractere se houver texto
                         input_text = input_text[:-1]
                     elif event.key == pygame.K_RETURN:  # Enter
-                        self.jogador = input_text
-                        print(f"Nome do jogador: {self.jogador}")
+                        #cria novo jogador
+                        self.salva_estatisticas()
+                        self.jogador = Jogador(
+                            nome = input_text,
+                            pontuacao_professor = 0,
+                            pontuacao_estudante = "",
+                            data=datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+                            )
+                        print(f"Nome do jogador: {self.jogador.nome}")
                         # Aqui você pode chamar a função menu_fases 
+                        self.salva_estatisticas()
                         self.menu_fases()
                         return
                     else:
@@ -567,6 +607,7 @@ class Jogo:
 
     def acao_sair(self): #APLICAR SALVAMENTO DE JOGO!!!!!!!!!!!
         print("Ação: Sair")
+        self.salva_estatisticas()
         pygame.quit()
         sys.exit()
 

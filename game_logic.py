@@ -29,11 +29,24 @@ class Jogo:
         }
 
         self.cores_neutras = {
-           "branco": (255, 255, 255),  # Máxima luz em todos os canais
-            "cinza": (128, 128, 128),  # Mistura equilibrada de preto e branco
-            "preto": (0, 0, 0),        # Ausência de luz
-            "marrom_claro": (210, 180, 140),  # Bege ou areia
-            "marrom_escuro": (139, 69, 19),   # Tom mais intenso de marrom
+            "turquesa": (64, 224, 208),
+            "magenta": (255, 0, 255),
+            "rosa": (255, 192, 203),
+            "marrom": (139, 69, 19),
+            "bege": (245, 245, 220),
+            "cinza": (128, 128, 128),
+            "dourado": (255, 215, 0),
+            "prata": (192, 192, 192),
+            "ciano_claro": (224, 255, 255),
+            "verde_agua": (32, 178, 170),
+            "salmao": (250, 128, 114),
+            "vinho": (128, 0, 32),
+            "purpura": (128, 0, 128),
+            "lilas": (200, 162, 200),
+            "oliva": (107, 142, 35),
+            "ambar": (255, 191, 0),
+            "ferrugem": (183, 65, 14),
+            "coral": (255, 127, 80),
         }
         
         self.bolinhas = []
@@ -85,10 +98,10 @@ class Jogo:
                 altura=90,
                 texto=f"MENU",
                 cor_normal=(255, 220, 140),
-                cor_hover=(30, 130, 220),
-                cor_sombra=(204, 153, 0),
+                cor_hover=(255, 220, 100),
+                cor_sombra=(204, 153, 100),
                 cor_texto=(0, 0, 0),
-                fonte=pygame.font.SysFont("Arial", 40),
+                fonte=pygame.font.SysFont("Baskerville", 40),
                 acao=self.menu_nome,  # Define a ação ao clicar no botão
             )
         }
@@ -102,6 +115,10 @@ class Jogo:
 
         self.layout_menu_fases = pygame.image.load("assets/layouts/fase_1_desbloqueada.png")
         self.layout_menu_fases = pygame.transform.smoothscale(self.layout_menu_fases, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        self.layout_menu_fases_2 = pygame.image.load("assets/layouts/fase_1_2_desbloqueada.png")
+        self.layout_menu_fases_2 = pygame.transform.smoothscale(self.layout_menu_fases_2, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
 
         #fase_1
         self.layout_nivel_1 = pygame.image.load("assets/layouts/tela_escolha_cor_primaria.png")
@@ -139,8 +156,10 @@ class Jogo:
 
     def desenhar_menu_fases(self):
         """desenha o layout do menu de fases"""
-        self.tela.blit(self.layout_menu_fases, (0, 0))
-
+        if self.fase_2 == "Bloqueada":
+            self.tela.blit(self.layout_menu_fases, (0, 0))
+        elif self.fase_2 == "Desbloqueada":
+            self.tela.blit(self.layout_menu_fases_2, (0, 0))
         # Desenha os botoes do menu
 
         for botao in self.botoes_menu_fases.values():
@@ -256,7 +275,8 @@ class Jogo:
                     elif (escolhida and self.nivel_fase_1 == "secundaria"):
                         # chamar fase_cores_secundarias()
                         print("acertou cor secundaria! parabens")
-                        pass
+                        self.fase_2 = "Desbloqueada"
+                        return
                     elif not escolhida and self.nivel_fase_1 == "primaria":
                         print("errou cor primaria! tente novamente")
 
@@ -278,6 +298,8 @@ class Jogo:
             botoes = self.botoes_config
         elif self.menu_atual == "menu_fases":
             botoes = self.botoes_menu_fases
+        elif self.menu_atual == "fase_cores_primarias":
+            botoes = self.botoes_fase_1
         else:
             return
 
@@ -306,11 +328,11 @@ class Jogo:
                 largura=500,
                 altura=60,
                 texto=f"{((self.jogador.nome))}",
-                cor_normal=(255, 220, 140),
-                cor_hover=(30, 130, 220),
-                cor_sombra=(204, 153, 0),
-                cor_texto=(0, 0, 0),
-                fonte=pygame.font.SysFont("Arial", 40),
+                cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+                cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+                cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+                cor_texto=(0, 0, 0), 
+                fonte=pygame.font.SysFont("Baskerville", 40),
                 acao=self.menu_fases,  # Define a ação ao clicar no botão
             )
 
@@ -364,11 +386,11 @@ class Jogo:
             largura=210,
             altura=90,
             texto="MENU",
-            cor_normal=(255, 220, 140),
-            cor_hover=(30, 130, 220),
-            cor_sombra=(204, 153, 0),
+            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
             cor_texto=(0, 0, 0),
-            fonte=pygame.font.SysFont("Arial", 40), 
+            fonte=pygame.font.SysFont("Baskerville", 40), 
             acao=acao_especial,
         )
 

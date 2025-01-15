@@ -209,7 +209,7 @@ class BotaoEspecial:
         """
         largura = 200
         altura = 60
-        fonte = pygame.font.SysFont("Helvetica", 36, bold=True)
+        fonte = pygame.font.SysFont("Baskerville", 36, bold=True)
         return Botao(
             x=300,
             y=500,  # Ajuste conforme a altura da sua tela
@@ -217,10 +217,10 @@ class BotaoEspecial:
             altura=altura,
             texto="Voltar ao jogo →",
             fonte=fonte,
-            cor_normal=(255, 161, 43),  # Cor normal (#FFA12B)
-            cor_hover=(247, 137, 0),  # Cor hover (#F78900)
-            cor_sombra=(145, 81, 0),  # Cor da sombra (#915100)
-            cor_texto=(255, 255, 255),  # Cor do texto (branco)
+            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+            cor_texto=(0, 0, 0),  # Cor do texto (branco)
             acao=acao,
         )
 

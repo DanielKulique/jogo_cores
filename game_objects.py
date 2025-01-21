@@ -270,6 +270,48 @@ class Bolinha:
         pygame.draw.circle(tela, self.cor, (self.x, self.y), self.raio)
 
 
+class Quadrado:
+    def __init__(self, x, y, caminho_imagem, lado=120):
+        self.x = x
+        self.y = y
+        self.lado = lado
+        self.hover = False  # Novo atributo para hover
+        self.imagem = pygame.image.load(caminho_imagem)  # Carrega a imagem
+        self.imagem = pygame.transform.scale(self.imagem, (lado + 30, lado))  # Ajusta o tamanho da imagem
+
+    def foi_clicada(self, pos):
+        """Verifica se o clique foi dentro do quadrado."""
+        mx, my = pos
+        return self.x <= mx <= self.x + self.lado and self.y <= my <= self.y + self.lado
+
+    def verificar_hover(self, pos):
+        """Verifica se o mouse está sobre o quadrado."""
+        mx, my = pos
+        self.hover = self.x <= mx <= self.x + self.lado and self.y <= my <= self.y + self.lado
+
+    def desenhar(self, tela):
+        """Desenha o quadrado com a imagem e um efeito hover."""
+        if self.hover:
+            # Desenhar o efeito hover preto em torno do quadrado
+            pygame.draw.rect(tela, (255, 255, 100), (self.x - 5, self.y - 5, self.lado + 35, self.lado + 20))
+
+            # Criar brilho amarelo translúcido fora dos limites do hover preto
+            brilho = 30
+            for i in range(5):
+                brilho += 5
+                largura = self.lado + 35 + (i + 1) * 6
+                altura = self.lado + 20 + (i + 1) * 6
+                brilho_x = self.x - 5 - (i + 1) * 3
+                brilho_y = self.y - 5 - (i + 1) * 3
+
+                surface = pygame.Surface((largura, altura), pygame.SRCALPHA)
+                brilho_cor = (255, 255, 0, brilho)  # Amarelo translúcido
+                pygame.draw.rect(surface, brilho_cor, (0, 0, largura, altura))
+                pygame.draw.rect(surface, (0, 0, 0, 0), (3, 3, largura - 6, altura - 6))  # Recorte central
+                tela.blit(surface, (brilho_x, brilho_y))
+
+        # Desenhar o quadrado com a imagem
+        tela.blit(self.imagem, (self.x, self.y))
 
 
 

@@ -1,4 +1,4 @@
-import pygame
+import pygame, os
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 
 # Funções para ações dos botões
@@ -73,7 +73,7 @@ class Jogador:
                 f"Tentativas Fase 1 Nível 2: {self.tentativas_fase1_nivel_2}\n"
                 f"Tentativas Fase 2 Nível 1: {self.tentativas_fase2_nivel_1}\n"
                 f"Tentativas Fase 2 Nível 2: {self.tentativas_fase2_nivel_2}\n"
-                f"Pontuação Final: {self.calcular_pontuacao()}\n"
+                f"Pontuação Final: \n" #self.calcular_pontuacao()
                 f"Data: {self.data}")
 
     def salvar_log(self, caminho_arquivo="resultados.txt"):
@@ -82,6 +82,55 @@ class Jogador:
         """
         with open(caminho_arquivo, "a", encoding="utf-8") as arquivo:
             arquivo.write(self.__str__() + "\n" + "-" * 50 + "\n")
+
+    @staticmethod
+    def verificar_ultimo_jogador(caminho_arquivo="resultados.txt"):
+        """
+        Verifica se há um jogador registrado no arquivo de log e retorna o último jogador registrado.
+        Caso não exista nenhum registro, retorna None.
+        """
+        if not os.path.exists(caminho_arquivo):
+            print("Arquivo de log não encontrado.")
+            return None
+
+        with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+            conteudo = arquivo.read().strip()
+        
+        if not conteudo:
+            print("Arquivo de log está vazio.")
+            return None
+
+        # Dividimos os registros de jogadores pelo separador usado no método salvar_log()
+        registros = conteudo.split("-" * 50)
+        registros = [registro.strip() for registro in registros if registro.strip()]
+        
+        if not registros:
+            print("Nenhum registro de jogador encontrado.")
+            return None
+
+        # Pega o último registro válido
+        ultimo_registro = registros[-1]
+        linhas = ultimo_registro.split("\n")
+        
+        if len(linhas) >= 9:  # Ajustar para o número correto de linhas esperadas
+            try:
+                nome = linhas[0].split(": ")[1] if len(linhas) > 0 else "Desconhecido"
+                pontuacao_estudante = int(linhas[1].split(": ")[1]) if len(linhas) > 1 and linhas[1].split(": ")[1] else 0
+                pontuacao_professor = int(linhas[2].split(": ")[1]) if len(linhas) > 2 and linhas[2].split(": ")[1] else 0
+                data = linhas[-1].split(": ")[1] if len(linhas) > 8 else "Data desconhecida"  # A data está na última linha
+                
+                # Se o nome estiver vazio, considere isso como um erro
+                if not nome.strip():
+                    nome = "Desconhecido"
+                
+                return Jogador(nome, pontuacao_professor, pontuacao_estudante, data)
+            except ValueError as ve:
+                print(f"Erro ao converter pontuações para inteiro: {ve}")
+                return None
+        else:
+            print("Dados do jogador estão incompletos!")
+            return 
+
 
 
 # Classe Botao reaproveitada para todas as interações
@@ -271,7 +320,7 @@ class Bolinha:
 
 
 class Quadrado:
-    def __init__(self, x, y, caminho_imagem, lado=120):
+    def __init__(self, x, y, caminho_imagem, lado):
         self.x = x
         self.y = y
         self.lado = lado

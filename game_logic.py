@@ -34,6 +34,7 @@ class Jogo:
         self.acertou3_secundaria = 1
         #segunda fase
         self.acertos_nivel1 = 0
+        self.acertos_nivel2 = 0
 
         self.cores_erradas = { 
             "turquesa": (64, 224, 208),
@@ -163,6 +164,8 @@ class Jogo:
         self.layout_nivel_12 = pygame.image.load("assets/segunda_fase/40.png") 
         self.layout_nivel_12 = pygame.transform.smoothscale(self.layout_nivel_12, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+        self.layout_nivel_22 = pygame.image.load("assets/segunda_fase/48.png") 
+        self.layout_nivel_22 = pygame.transform.smoothscale(self.layout_nivel_22, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     #ENCAPSULANDO FUNCOES DA CLASSE JOGADOR!
     def registrar_tentativa(self, fase, nivel, acertou):
@@ -180,17 +183,26 @@ class Jogo:
     #ENCAPSULAR QUADRADOS
     def desenhar_quadrados(self):
         """Desenha todos os quadrados na tela."""
-        for quadrado in self.quadrados_primarios.values():
-            quadrado.desenhar(self.tela)
-        
+        if self.nivel_fase_2 == "primaria":
+            for quadrado in self.quadrados_primarios.values():
+                quadrado.desenhar(self.tela)
+        else:
+            for quadrado in self.quadrados_secundarios.values():
+                quadrado.desenhar(self.tela)        
     
 
     def verificar_clique_quadrado(self, pos):
         """Verifica qual quadrado foi clicado."""
-        for nome, quadrado in self.quadrados_primarios.items():
-            if quadrado.foi_clicada(pos):
-                print(f"Quadrado clicado: {nome}")
-                return nome
+        if self.nivel_fase_2 == "primaria":
+            for nome, quadrado in self.quadrados_primarios.items():
+                if quadrado.foi_clicada(pos):
+                    print(f"Quadrado clicado: {nome}")
+                    return nome
+        else:
+            for nome, quadrado in self.quadrados_secundarios.items():
+                if quadrado.foi_clicada(pos):
+                    print(f"Quadrado clicado: {nome}")
+                    return nome
         return None
     #FIM ENCAPSULAMENTO
     def iniciar_quadrados(self):
@@ -202,13 +214,30 @@ class Jogo:
             (1080, 370),
             (890, 440),
         ]
-        nomes = ["bola_azul", "osso_amarelo", "osso_preto", "osso_vermelho", "urso_marrom"]
-        
-        random.shuffle(coordenadas_disponiveis)  # Embaralha as coordenadas
-        
-        for nome, (x, y) in zip(nomes, coordenadas_disponiveis):
-            # Associa cada nome de quadrado a uma coordenada embaralhada
-            self.quadrados_primarios[nome] = Quadrado(x, y, f"assets/objetos_primarios/{nome}.png")
+        coordenadas_disponiveis_fase2 = [
+            (800, 120),
+            (1020, 170),
+            (800, 280),
+            (1040, 370),
+            (850, 420),
+        ]
+        if self.nivel_fase_2 == "primaria":
+            nomes = ["bola_azul", "osso_amarelo", "osso_preto", "osso_vermelho", "urso_marrom"]
+            
+            random.shuffle(coordenadas_disponiveis)  # Embaralha as coordenadas
+            
+            for nome, (x, y) in zip(nomes, coordenadas_disponiveis):
+                # Associa cada nome de quadrado a uma coordenada embaralhada
+                self.quadrados_primarios[nome] = Quadrado(x, y, f"assets/objetos_primarios/{nome}.png", 120)
+        else:
+            nomes = ["bola_verde", "estrela_roxa", "flor_rosa", "laco_laranja", "osso_azul"]
+            
+            random.shuffle(coordenadas_disponiveis_fase2)  # Embaralha as coordenadas
+            
+            for nome, (x, y) in zip(nomes, coordenadas_disponiveis_fase2):
+                # Associa cada nome de quadrado a uma coordenada embaralhada
+                self.quadrados_secundarios[nome] = Quadrado(x, y, f"assets/objetos_secundarios/{nome}.png", 140)
+            
 
     def remover_quadrado(self, nome):
         """Remove um quadrado pelo nome."""
@@ -218,18 +247,35 @@ class Jogo:
                 print(f"{nome} foi removido com sucesso!")
             else:
                 print(f"Erro: {nome} não encontrado.")
+        else:
+            if nome in self.quadrados_secundarios:
+                del self.quadrados_secundarios[nome]
+                print(f"{nome} foi removido com sucesso!")
+            else:
+                print(f"Erro: {nome} não encontrado.")
 
     def inicia_caixa(self, objeto): 
 
-        if objeto == "bola_azul":
-            self.quadrados_caixa["bola_azul"] = Quadrado(510, 430, f"assets/objetos_primarios/bola_azul.png")
-            self.remover_quadrado("bola_azul")
-        elif objeto == "osso_amarelo":
-            self.quadrados_caixa["osso_amarelo"] = Quadrado(460, 450, f"assets/objetos_primarios/osso_amarelo.png")
-            self.remover_quadrado("osso_amarelo")
-        elif objeto == "osso_vermelho":
-            self.quadrados_caixa["osso_vermelho"] = Quadrado(583, 470, f"assets/objetos_primarios/osso_vermelho.png")
-            self.remover_quadrado("osso_vermelho") 
+        if self.nivel_fase_2 == "primaria":
+            if objeto == "bola_azul":
+                self.quadrados_caixa["bola_azul"] = Quadrado(510, 430, f"assets/objetos_primarios/bola_azul.png", 120)
+                self.remover_quadrado("bola_azul")
+            elif objeto == "osso_amarelo":
+                self.quadrados_caixa["osso_amarelo"] = Quadrado(460, 450, f"assets/objetos_primarios/osso_amarelo.png", 120)
+                self.remover_quadrado("osso_amarelo")
+            elif objeto == "osso_vermelho":
+                self.quadrados_caixa["osso_vermelho"] = Quadrado(583, 470, f"assets/objetos_primarios/osso_vermelho.png", 120)
+                self.remover_quadrado("osso_vermelho") 
+        else:
+            if objeto == "bola_verde":
+                self.quadrados_caixa["bola_verde"] = Quadrado(510, 430, f"assets/objetos_secundarios/bola_verde.png", 150)
+                self.remover_quadrado("bola_verde")
+            elif objeto == "laco_laranja":
+                self.quadrados_caixa["laco_laranja"] = Quadrado(460, 450, f"assets/objetos_secundarios/laco_laranja.png", 150)
+                self.remover_quadrado("laco_laranja")
+            elif objeto == "estrela_roxa":
+                self.quadrados_caixa["estrela_roxa"] = Quadrado(500, 470, f"assets/objetos_secundarios/estrela_roxa.png", 150)
+                self.remover_quadrado("estrela_roxa") 
 
 
     def desenhar_menu(self):
@@ -342,7 +388,7 @@ class Jogo:
         if self.nivel_fase_2 == "primaria":
             self.tela.blit(self.layout_nivel_12, (0, 0))
         else:
-            self.tela.blit(self.layout_nivel_12, (0, 0)) #fazer layout nivel 2
+            self.tela.blit(self.layout_nivel_22, (0, 0)) #fazer layout nivel 2
 
         #desenhar botoes
         for botao in self.botoes_fase_2.values():
@@ -350,12 +396,14 @@ class Jogo:
 
         for quadrado in self.quadrados_caixa.values():
             quadrado.desenhar(self.tela)
+
         #desenha os quadrados na tela
         self.desenhar_quadrados()
 
     def primeira_fase(self):
         self.menu_atual = "primeira_fase"
         
+
         print("Iniciando Fase 1")
         while self.running:
             for event in pygame.event.get():
@@ -384,6 +432,7 @@ class Jogo:
                         #nao concluir o caralho da fase
                         #fazer um contador cont = 3, quando bater chama fase das cores secundarias
                         #chamar o contador de erros da class jogador
+                        self.jogador.tentativas_fase1_nivel_1 += 1
 
                         if self.acertou3_primaria == 3:
                             self.nivel_fase_1 = "secundaria"
@@ -403,7 +452,8 @@ class Jogo:
 
                     elif (escolhida and self.nivel_fase_1 == "secundaria"):
                         # chamar fase_cores_secundarias()
-                        print("AQUIIIIIIIIIIIIIIIIIi")
+                        #print("AQUIIIIIIIIIIIIIIIIIi")
+                        self.jogador.tentativas_fase1_nivel_2 += 1
                         if self.acertou3_secundaria == 3:
                             self.tela.blit(self.layout_acertou_nivel_2, (0, 0))
                             pygame.display.flip()
@@ -415,6 +465,7 @@ class Jogo:
                             pygame.display.flip()
                             self.iniciar_bolinhas()
                             self.fase_2 = "Desbloqueada"
+                            self.jogador.fase_1 = True
                             self.botoes_menu_fases["fase_2"] = Botao(500, SCREEN_HEIGHT - 295, 275, 50, "Fase 2", (255, 150, 150), acao=self.segunda_fase)
                             self.menu_fases()
                         self.acertou3_secundaria += 1
@@ -422,11 +473,12 @@ class Jogo:
                         print("acertou cor secundaria! parabens")
                     elif not escolhida and self.nivel_fase_1 == "primaria":
                         print("errou cor primaria! tente novamente")
-
+                        self.jogador.tentativas_fase1_nivel_1 += 1
                         #contabilizar erro e dificuldades em relacao as cores restantes na tela do jogador
                         
 
                     elif not escolhida and self.nivel_fase_1 == "secundaria":
+                        self.jogador.tentativas_fase1_nivel_2 += 1
                         print("errou cor secundaria! tente novamente")
 
 
@@ -436,60 +488,88 @@ class Jogo:
 
     def segunda_fase(self):
         self.menu_atual = "segunda_fase"
-        print("Iniciando fase 2")
+        self.nivel_fase_2 = "primaria"  # Garante que a fase inicie no nível primário
+        self.acertos_nivel1 = 0
+        self.acertos_nivel2 = 0
+        self.quadrados_caixa.clear()  # Limpa quaisquer quadrados residuais
+        self.iniciar_quadrados()  # Inicializa os quadrados da fase
+
+        print("Iniciando Fase 2")
 
         # Loop principal
         running = True
-        
-        while running: 
+        while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 elif event.type == pygame.MOUSEMOTION:
                     pos = pygame.mouse.get_pos()
-                    for quadrado in self.quadrados_primarios.values():
-                        quadrado.verificar_hover(pos)
+                    # Verifica o hover com base no nível atual
+                    if self.nivel_fase_2 == 'primaria':
+                        for quadrado in self.quadrados_primarios.values():
+                            quadrado.verificar_hover(pos)
+                    else:
+                        for quadrado in self.quadrados_secundarios.values():
+                            quadrado.verificar_hover(pos)
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
-                    x, y = event.pos
-                    print(f"Posição do clique: x = {x}, y = {y}")
-                    self.verificar_clique(pos)
+                    print(f"Posição do clique: {pos}")
 
-                    quadrados_para_remover = []
-                    
-                    for nome, quadrado in self.quadrados_primarios.items():
-                        if quadrado.foi_clicada(pos):
-                            print(f"Quadrado {nome} clicado!")
-                            if nome == "osso_preto" or nome == "urso_marrom":
-                                print("ERROU!")
-                            else: #acertou
-                                quadrados_para_remover.append(nome)
-                                self.acertos_nivel1 += 1
-                            
-                    for nome in quadrados_para_remover:
-                        self.remover_quadrado(nome)
-                        self.inicia_caixa(nome)
-                    
-                    
+                    if self.nivel_fase_2 == 'primaria':
+                        quadrados_para_remover = []
+                        for nome, quadrado in self.quadrados_primarios.items():
+                            if quadrado.foi_clicada(pos):
+                                print(f"Quadrado {nome} clicado!")
+                                if nome in ["osso_preto", "urso_marrom"]:
+                                    print("ERROU!")
+                                else:  # Acerto
+                                    quadrados_para_remover.append(nome)
+                                    self.acertos_nivel1 += 1
+                        
+                        for nome in quadrados_para_remover:
+                            self.remover_quadrado(nome)
+                            self.inicia_caixa(nome)
 
-            # Desenhar segunda fase
+                    elif self.nivel_fase_2 == 'secundaria':
+                        quadrados_para_remover = []
+                        for nome, quadrado in self.quadrados_secundarios.items():
+                            if quadrado.foi_clicada(pos):
+                                print(f"Quadrado {nome} clicado!")
+                                if nome in ["flor_rosa", "osso_azul"]:
+                                    print("ERROU!")
+                                else:  # Acerto
+                                    quadrados_para_remover.append(nome)
+                                    self.acertos_nivel2 += 1
+                        
+                        for nome in quadrados_para_remover:
+                            self.remover_quadrado(nome)
+                            self.inicia_caixa(nome)
+
+            # Desenha o layout da fase com base no nível atual
             self.desenhar_segunda_fase()
-            
-            # Atualizar a tela
             pygame.display.flip()
             self.clock.tick(60)
-            if self.acertos_nivel1 == 3:
-                        print("voce ganhou, nivel 2 agora!")
-                        #chamar layout ganhou
-                        tempo_inicio = pygame.time.get_ticks()
-                        self.delay(tempo_inicio, 3000)
-                        self.quadrados_caixa.clear()
-                        self.iniciar_quadrados()
-                        self.menu_fases()
 
-            # Verificar condição de saída
-            if self.menu_atual != "segunda_fase":
+            # Verifica condições de vitória no nível primário
+            if self.nivel_fase_2 == 'primaria' and self.acertos_nivel1 == 3:
+                print("Você completou o nível primário! Avançando para cores secundárias.")
+                tempo_inicio = pygame.time.get_ticks()
+                self.delay(tempo_inicio, 3000)
+                self.nivel_fase_2 = "secundaria"
+                self.acertos_nivel1 = 0  # Reseta o contador para evitar interferências
+                self.quadrados_caixa.clear()
+                self.iniciar_quadrados()  # Inicializa os quadrados do nível secundário
+
+            # Verifica condições de vitória no nível secundário
+            elif self.nivel_fase_2 == 'secundaria' and self.acertos_nivel2 == 3:
+                print("Você completou a Fase 2! Parabéns!")
+                tempo_inicio = pygame.time.get_ticks()
+                self.delay(tempo_inicio, 3000)
+                self.jogador.fase_2 = True
+                self.menu_fases()  # Retorna ao menu de fases
                 running = False
 
 
@@ -524,6 +604,18 @@ class Jogo:
         O botão 'Menu' estará sempre visível.
         """
         self.menu_atual = "menu_principal"
+    
+        # Verifica se há um jogador registrado no log
+        ultimo_jogador = Jogador.verificar_ultimo_jogador("resultados.txt")
+        
+        if ultimo_jogador:
+            # Se um jogador foi encontrado, carrega-o no jogo
+            self.jogador = ultimo_jogador
+            print(f"Jogador carregado: {self.jogador.nome}")
+        else:
+            # Caso contrário, permite a criação de um novo jogador
+            print("Nenhum jogador encontrado, criando novo jogador.")
+            self.jogador = Jogador(nome="Novo Jogador", pontuacao_professor=0, pontuacao_estudante=0, data=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
         # Criar o botão 'Voltar ao jogo →' apenas se o nome do jogador foi inserido
         botao_voltar = None
@@ -707,9 +799,26 @@ class Jogo:
             pygame.display.flip()
             self.clock.tick(60)
 
+    def verifica_fases_jogador(self): #verifica se ha jogador e se ja desbloqueou as fases
+        if self.jogador:
+            if self.jogador.fase_1:
+                self.fase_1 = "Desbloqueada"
+            if self.jogador.fase_2:
+                self.fase_2 = "Desbloqueada"
+
     def menu_fases(self):
             print("Acao_menu_fases")
-            
+            #reseta progressao das fases(nivel) para o jogador pode jogar novamente, caso queira!
+            self.verifica_fases_jogador()
+            self.nivel_fase_1 = "primaria" 
+            self.acertou3_primaria = 1
+            self.acertou3_secundaria = 1
+            self.bolinhas = []
+            self.iniciar_bolinhas()
+            #segunda fase
+            self.acertos_nivel1 = 0
+            self.acertos_nivel2 = 0
+
             botao_menu = self.botao_especial_menu["menu_especial"]
             
             self.menu_atual = "menu_fases"
@@ -825,6 +934,7 @@ class Jogo:
             pygame.display.flip()
             self.clock.tick(60)  # Limita o loop a 60 quadros por segun
 
+    
 
     def acao_ajuda_fase2(self):
         print("acao_ajuda_faseq")
@@ -843,6 +953,7 @@ class Jogo:
         self.salva_estatisticas()
         pygame.quit()
         sys.exit()
+
 
 # Inicializando o jogo
 if __name__ == "__main__":

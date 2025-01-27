@@ -1,7 +1,13 @@
 # config.py
 
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
+import tkinter as tk
+
+root = tk.Tk()
+root.withdraw()  # Oculta a janela principal do Tkinter
+
+
+SCREEN_WIDTH = root.winfo_screenwidth() 
+SCREEN_HEIGHT = root.winfo_screenheight()
 FPS = 60
 
 CORES = {

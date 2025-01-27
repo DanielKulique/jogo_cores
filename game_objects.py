@@ -89,13 +89,16 @@ class Jogador:
         Verifica se há um jogador registrado no arquivo de log e retorna o último jogador registrado.
         Caso não exista nenhum registro, retorna None.
         """
+        import os
+        import ast  # Para avaliar o dicionário de string como um objeto Python
+
         if not os.path.exists(caminho_arquivo):
             print("Arquivo de log não encontrado.")
             return None
 
         with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
             conteudo = arquivo.read().strip()
-        
+
         if not conteudo:
             print("Arquivo de log está vazio.")
             return None
@@ -103,7 +106,7 @@ class Jogador:
         # Dividimos os registros de jogadores pelo separador usado no método salvar_log()
         registros = conteudo.split("-" * 50)
         registros = [registro.strip() for registro in registros if registro.strip()]
-        
+
         if not registros:
             print("Nenhum registro de jogador encontrado.")
             return None
@@ -111,25 +114,38 @@ class Jogador:
         # Pega o último registro válido
         ultimo_registro = registros[-1]
         linhas = ultimo_registro.split("\n")
-        
-        if len(linhas) >= 9:  # Ajustar para o número correto de linhas esperadas
+
+        try:
+            # Dados básicos
+            nome = linhas[0].split(": ", 1)[1].strip() if len(linhas) > 0 and ": " in linhas[0] else "Desconhecido"
+            pontuacao_estudante_str = linhas[1].split(": ", 1)[1].strip() if len(linhas) > 1 and ": " in linhas[1] else "0"
+            pontuacao_professor_str = linhas[2].split(": ", 1)[1].strip() if len(linhas) > 2 and ": " in linhas[2] else "{}"
+            fase_1_str = linhas[3].split(": ", 1)[1].strip() if len(linhas) > 3 and ": " in linhas[3] else "False"
+            fase_2_str = linhas[4].split(": ", 1)[1].strip() if len(linhas) > 4 and ": " in linhas[4] else "False"
+            data = linhas[-1].split(": ", 1)[1].strip() if len(linhas) > 8 and ": " in linhas[-1] else "Data desconhecida"
+
+            # Conversão de pontuação para dicionário (usando `ast.literal_eval`)
             try:
-                nome = linhas[0].split(": ")[1] if len(linhas) > 0 else "Desconhecido"
-                pontuacao_estudante = int(linhas[1].split(": ")[1]) if len(linhas) > 1 and linhas[1].split(": ")[1] else 0
-                pontuacao_professor = int(linhas[2].split(": ")[1]) if len(linhas) > 2 and linhas[2].split(": ")[1] else 0
-                data = linhas[-1].split(": ")[1] if len(linhas) > 8 else "Data desconhecida"  # A data está na última linha
-                
-                # Se o nome estiver vazio, considere isso como um erro
-                if not nome.strip():
-                    nome = "Desconhecido"
-                
-                return Jogador(nome, pontuacao_professor, pontuacao_estudante, data)
-            except ValueError as ve:
-                print(f"Erro ao converter pontuações para inteiro: {ve}")
-                return None
-        else:
-            print("Dados do jogador estão incompletos!")
-            return 
+                pontuacao_professor = ast.literal_eval(pontuacao_professor_str)
+            except (ValueError, SyntaxError):
+                pontuacao_professor = {"Grande dificuldade": [{"primarias": [], "secundarias": []}], 
+                                    "Leve dificuldade": [{"primarias": [], "secundarias": []}]}
+
+            # Conversão segura para inteiros e booleanos
+            pontuacao_estudante = int(pontuacao_estudante_str) if pontuacao_estudante_str.isdigit() else 0
+            fase_1 = fase_1_str.lower() == "true"
+            fase_2 = fase_2_str.lower() == "true"
+
+            # Cria o jogador e ajusta as propriedades
+            jogador = Jogador(nome, pontuacao_professor, pontuacao_estudante, data)
+            jogador.fase_1 = fase_1
+            jogador.fase_2 = fase_2
+
+            return jogador
+        except (IndexError, ValueError, SyntaxError) as e:
+            print(f"Erro ao processar o último registro: {e}")
+            return None
+
 
 
 
@@ -317,7 +333,22 @@ class Bolinha:
                     
         # Desenhar a bolinha principal
         pygame.draw.circle(tela, self.cor, (self.x, self.y), self.raio)
+    
+    def desenhar_x(self, tela):
+        """Desenha um 'X' vermelho em cima da bolinha."""
+        tamanho = self.raio * 1.2  # Ajusta o tamanho do X baseado no raio da bolinha
+        cor = (255, 0, 0)  # Vermelho
+        largura = 10  # Espessura das linhas do X
 
+        # Coordenadas para as linhas do 'X'
+        inicio_linha1 = (self.x - tamanho, self.y - tamanho)
+        fim_linha1 = (self.x + tamanho, self.y + tamanho)
+        inicio_linha2 = (self.x - tamanho, self.y + tamanho)
+        fim_linha2 = (self.x + tamanho, self.y - tamanho)
+
+        # Desenha as duas linhas do 'X'
+        pygame.draw.line(tela, cor, inicio_linha1, fim_linha1, largura)
+        pygame.draw.line(tela, cor, inicio_linha2, fim_linha2, largura)
 
 class Quadrado:
     def __init__(self, x, y, caminho_imagem, lado):

@@ -1,4 +1,4 @@
-import pygame, random, sys, time
+import pygame, random, sys, time, os
 from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 from datetime import datetime
@@ -6,18 +6,28 @@ from datetime import datetime
 class Jogo:
     def __init__(self):
         pygame.init()
-        self.tela = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        #tela
+        self.tela = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.modo_tela_cheia = True  # Estado inicial
+        self.menu_atual = None
+
         pygame.display.set_caption("Menu Inicial")
         self.clock = pygame.time.Clock()
         self.running = True
-        self.fase_1 = "Desbloqueada"
-        self.fase_2 = "Bloqueada"
+
         self.menu_atual = "menu_principal" 
         self.ultimo_clique = pygame.time.get_ticks()
         self.nivel_fase_1 = "primaria"
         self.cor_clicada = ""
         self.nivel_fase_2 = "primaria"
-        
+        self.erro = False
+        self.dificuldade_identificar = {"cores_primarias": [], "cores_secundarias": []}
+        self.dificuldade_identificar_2 = {"cores_primarias": [], "cores_secundarias": []}
+        self.dificuldade = {
+                            "Grande dificuldade": [{"primarias": [], "secundarias": []}], 
+                            "Leve dificuldade": [{"primarias": [], "secundarias": []}]
+        }
+
         self.cores_primarias = {
             "vermelho": (255, 0, 0),
             "amarelo": (255, 255, 0),
@@ -41,14 +51,13 @@ class Jogo:
             "magenta": (255, 0, 255),
             "rosa": (255, 192, 203),
             "marrom": (139, 69, 19),
-            "bege": (245, 245, 220),
+            "bege": (200, 200, 160),
             "cinza": (128, 128, 128),
-            "prata": (192, 192, 192),
-            "ciano_claro": (224, 255, 255),
+            "prata": (128, 128, 128),
+            "ciano_claro": (100, 180, 180),
             "verde_agua": (32, 178, 170),
             "salmao": (250, 128, 114),
             "vinho": (128, 0, 32),
-            "purpura": (128, 0, 128),
             "lilas": (200, 162, 200),
             "oliva": (107, 142, 35),
             "ambar": (255, 191, 0),
@@ -66,6 +75,9 @@ class Jogo:
             data=datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
             )
 
+        self.fase_1 = "Desbloqueada"
+        self.fase_2 = "Bloqueada"
+            
         # Instanciando os botões
         self.botoes = {
             "professor": Botao(50, SCREEN_HEIGHT - 185, 260, 140, "Professor", (255, 0, 0), acao=self.acao_professor),
@@ -167,6 +179,9 @@ class Jogo:
         self.layout_nivel_22 = pygame.image.load("assets/segunda_fase/48.png") 
         self.layout_nivel_22 = pygame.transform.smoothscale(self.layout_nivel_22, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+        self.layout_relatorio_professor = pygame.image.load("assets/layouts/12.png") 
+        self.layout_relatorio_professor = pygame.transform.smoothscale(self.layout_relatorio_professor, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
     #ENCAPSULANDO FUNCOES DA CLASSE JOGADOR!
     def registrar_tentativa(self, fase, nivel, acertou):
         """encapsula o registro de tentativas no jogador"""
@@ -178,7 +193,12 @@ class Jogo:
     
     def salva_estatisticas(self):
         """salva progresso jogador"""
-        self.jogador.salvar_log()
+        ultimo_jogador = Jogador.verificar_ultimo_jogador("resultados.txt")
+        if ultimo_jogador.nome == self.jogador.nome:
+            self.apagar_ultimas_linhas("resultados.txt", 12) # apaga o ultimo log para nao repetir os dados do mesmo jogador!
+            self.jogador.salvar_log()
+        else:
+            self.jogador.salvar_log()
 
     #ENCAPSULAR QUADRADOS
     def desenhar_quadrados(self):
@@ -205,6 +225,118 @@ class Jogo:
                     return nome
         return None
     #FIM ENCAPSULAMENTO
+    
+    def alternar_tela(self):
+        """
+        Alterna entre o modo tela cheia e o modo janela.
+        Redimensiona o layout do menu para se ajustar à nova resolução.
+        """
+        if self.modo_tela_cheia:
+            # Volta para o modo janela
+            
+            self.tela = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.modo_tela_cheia = False
+            print("Modo janela ativado.")
+        else:
+            # Ativa o modo tela cheia
+            self.tela = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            self.modo_tela_cheia = True
+            print("Modo tela cheia ativado.")
+
+        # Redimensiona o layout para o tamanho atual da tela
+        largura_tela, altura_tela = pygame.display.get_surface().get_size()
+        self.layout_menu = pygame.image.load("assets/layouts/start.png")
+        self.layout_menu = pygame.transform.smoothscale(self.layout_menu, (largura_tela, altura_tela))
+
+
+
+    def apagar_ultimas_linhas(self, caminho_arquivo, linhas_para_remover):
+        """
+        Remove as últimas 'linhas_para_remover' do arquivo especificado.
+        
+        :param caminho_arquivo: Caminho para o arquivo de texto.
+        :param linhas_para_remover: Número de linhas a serem removidas a partir do final.
+        """
+        try:
+            # Verificar se o arquivo existe
+            if not os.path.exists(caminho_arquivo):
+                print(f"Arquivo '{caminho_arquivo}' não encontrado.")
+                return
+
+            # Ler todas as linhas do arquivo
+            with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+                linhas = arquivo.readlines()
+
+            # Garantir que há linhas suficientes para remover
+            if len(linhas) <= linhas_para_remover:
+                print("Não há linhas suficientes para remover.")
+                linhas = []  # Remove todo o conteúdo
+            else:
+                linhas = linhas[:-linhas_para_remover]  # Mantém apenas as linhas necessárias
+
+            # Escrever as linhas restantes de volta ao arquivo
+            with open(caminho_arquivo, "w", encoding="utf-8") as arquivo:
+                arquivo.writelines(linhas)
+
+            print(f"As últimas {linhas_para_remover} linhas foram removidas do arquivo '{caminho_arquivo}'.")
+        
+        except Exception as e:
+            print(f"Ocorreu um erro ao processar o arquivo: {e}")
+
+    def adicionar_dificuldade(self, categoria, cor):
+        """Adiciona a cor à lista de dificuldades no dicionário, evitando duplicatas."""
+        if categoria in self.dificuldade_identificar:
+            if cor not in self.dificuldade_identificar[categoria]:
+                if cor == "desconhecida":
+                    pass
+                else:
+                    self.dificuldade_identificar[categoria].append(cor)
+
+    def verificar_dificuldade(self):
+        # Contadores para as cores
+        contador_cores = {
+            "cores_primarias": {},
+            "cores_secundarias": {}
+        }
+
+        # Função auxiliar para contar ocorrências de cores
+        def contar_cores(dicionario):
+            for tipo_cor, cores in dicionario.items():
+                for cor in cores:
+                    if cor in contador_cores[tipo_cor]:
+                        contador_cores[tipo_cor][cor] += 1
+                    else:
+                        contador_cores[tipo_cor][cor] = 1
+
+        # Contar cores de dificuldade_identificar e dificuldade_identificar_2
+        contar_cores(self.dificuldade_identificar)
+        contar_cores(self.dificuldade_identificar_2)
+
+        # Resetar dificuldade
+        self.dificuldade = {
+            "Grande dificuldade": [{"primarias": [], "secundarias": []}],
+            "Leve dificuldade": [{"primarias": [], "secundarias": []}]
+        }
+
+        # Classificar as cores baseadas na contagem
+        for tipo_cor, cores in contador_cores.items():
+            for cor, count in cores.items():
+                if count >= 2:  # Grande dificuldade
+                    if tipo_cor == "cores_primarias":
+                        self.dificuldade["Grande dificuldade"][0]["primarias"].append(cor)
+                    elif tipo_cor == "cores_secundarias":
+                        self.dificuldade["Grande dificuldade"][0]["secundarias"].append(cor)
+                elif count == 1:  # Leve dificuldade
+                    if tipo_cor == "cores_primarias":
+                        self.dificuldade["Leve dificuldade"][0]["primarias"].append(cor)
+                    elif tipo_cor == "cores_secundarias":
+                        self.dificuldade["Leve dificuldade"][0]["secundarias"].append(cor)
+
+        # Exibir resultados para depuração
+        print("Dificuldade atualizada:")
+        print(self.dificuldade)
+
+
     def iniciar_quadrados(self):
         """Inicializa os quadrados em posições aleatórias baseadas nas coordenadas fornecidas."""
         coordenadas_disponiveis = [
@@ -289,10 +421,13 @@ class Jogo:
 
     def desenhar_menu_fases(self):
         """desenha o layout do menu de fases"""
+        self.verifica_fases_jogador()
+        
         if self.fase_2 == "Bloqueada":
             self.tela.blit(self.layout_menu_fases, (0, 0))
         elif self.fase_2 == "Desbloqueada":
             self.tela.blit(self.layout_menu_fases_2, (0, 0))
+            self.botoes_menu_fases["fase_2"] = Botao(500, SCREEN_HEIGHT - 295, 275, 50, "Fase 2", (255, 150, 150), acao=self.segunda_fase)
         # Desenha os botoes do menu
 
         for botao in self.botoes_menu_fases.values():
@@ -369,6 +504,18 @@ class Jogo:
         # Se nenhuma bolinha válida foi clicada
         return False
 
+    def obter_nome_cor(self, rgb):
+        # Verifica nas cores primárias
+        for nome, valor in self.cores_primarias.items():
+            if valor == rgb:
+                return nome
+        # Verifica nas cores secundárias
+        for nome, valor in self.cores_secundarias.items():
+            if valor == rgb:
+                return nome
+        # Caso não encontre
+        return "desconhecida"
+
 
 
     def desenhar_primeira_fase(self):
@@ -383,6 +530,12 @@ class Jogo:
         # Desenho das bolinhas na tela
         for bolinha in self.bolinhas:
             bolinha.desenhar(self.tela)
+        
+        
+        for bolinha in self.bolinhas:
+            if self.erro and bolinha.cor in self.cores_erradas.values():
+                bolinha.desenhar_x(self.tela)
+                    
 
     def desenhar_segunda_fase(self):
         if self.nivel_fase_2 == "primaria":
@@ -436,7 +589,8 @@ class Jogo:
 
                         if self.acertou3_primaria == 3:
                             self.nivel_fase_1 = "secundaria"
-                    
+                            self.erro = False
+
                             self.tela.blit(self.layout_acertou_nivel_1, (0, 0))
                             pygame.display.flip()
                             #delay
@@ -455,6 +609,9 @@ class Jogo:
                         #print("AQUIIIIIIIIIIIIIIIIIi")
                         self.jogador.tentativas_fase1_nivel_2 += 1
                         if self.acertou3_secundaria == 3:
+                            self.erro = False
+                            self.verificar_dificuldade() 
+
                             self.tela.blit(self.layout_acertou_nivel_2, (0, 0))
                             pygame.display.flip()
                             #delay
@@ -471,16 +628,33 @@ class Jogo:
                         self.acertou3_secundaria += 1
                         #repetir a logica da fase primaria
                         print("acertou cor secundaria! parabens")
+
                     elif not escolhida and self.nivel_fase_1 == "primaria":
                         print("errou cor primaria! tente novamente")
-                        self.jogador.tentativas_fase1_nivel_1 += 1
+                        self.jogador.tentativas_fase1_nivel_1 += 1  
+
+                        self.erro = True    
+                        
+                        for bolinha in self.bolinhas:
+                            nome_cor = self.obter_nome_cor(bolinha.cor)  # Obtem o nome da cor baseado no RGB
+                            self.adicionar_dificuldade("cores_primarias", nome_cor)
+                            print(f"\nFalta primaria: {nome_cor}")
+
+                        print("Dificuldade até agora:", self.dificuldade_identificar)
+
                         #contabilizar erro e dificuldades em relacao as cores restantes na tela do jogador
                         
 
                     elif not escolhida and self.nivel_fase_1 == "secundaria":
                         self.jogador.tentativas_fase1_nivel_2 += 1
+                        self.erro = True
                         print("errou cor secundaria! tente novamente")
+                        for bolinha in self.bolinhas:
+                            nome_cor = self.obter_nome_cor(bolinha.cor)  # Obtem o nome da cor baseado no RGB
+                            self.adicionar_dificuldade("cores_secundarias", nome_cor)
+                            print(f"\nFalta secundária: {nome_cor}")
 
+                        print("Dificuldade até agora:", self.dificuldade_identificar)
 
             self.desenhar_primeira_fase()
             pygame.display.flip()
@@ -525,9 +699,14 @@ class Jogo:
                                 print(f"Quadrado {nome} clicado!")
                                 if nome in ["osso_preto", "urso_marrom"]:
                                     print("ERROU!")
+                                    for restante in self.quadrados_primarios.keys():
+                                        print(f"falta {restante}")
+                                        self.adicionar_dificuldade_2("cores_primarias", restante)
+
                                 else:  # Acerto
                                     quadrados_para_remover.append(nome)
                                     self.acertos_nivel1 += 1
+                                    
                         
                         for nome in quadrados_para_remover:
                             self.remover_quadrado(nome)
@@ -540,6 +719,9 @@ class Jogo:
                                 print(f"Quadrado {nome} clicado!")
                                 if nome in ["flor_rosa", "osso_azul"]:
                                     print("ERROU!")
+                                    for restante in self.quadrados_secundarios.keys():
+                                        print(f"falta {restante}")
+                                        self.adicionar_dificuldade_2("cores_secundarias", restante)
                                 else:  # Acerto
                                     quadrados_para_remover.append(nome)
                                     self.acertos_nivel2 += 1
@@ -556,6 +738,7 @@ class Jogo:
             # Verifica condições de vitória no nível primário
             if self.nivel_fase_2 == 'primaria' and self.acertos_nivel1 == 3:
                 print("Você completou o nível primário! Avançando para cores secundárias.")
+                print(f"{self.dificuldade_identificar_2.values()}")
                 tempo_inicio = pygame.time.get_ticks()
                 self.delay(tempo_inicio, 3000)
                 self.nivel_fase_2 = "secundaria"
@@ -566,12 +749,40 @@ class Jogo:
             # Verifica condições de vitória no nível secundário
             elif self.nivel_fase_2 == 'secundaria' and self.acertos_nivel2 == 3:
                 print("Você completou a Fase 2! Parabéns!")
+                print(f"{self.dificuldade_identificar_2.values()}")
+                self.verificar_dificuldade()
                 tempo_inicio = pygame.time.get_ticks()
                 self.delay(tempo_inicio, 3000)
                 self.jogador.fase_2 = True
                 self.menu_fases()  # Retorna ao menu de fases
                 running = False
 
+    def objeto_cor(self, objeto): #recebe o objeto e retorna sua cor
+        if objeto == "osso_amarelo":
+            return "amarelo"
+        elif objeto == "bola_azul":
+            return "azul"
+        elif objeto == "osso_vermelho":
+            return "vermelho"
+        elif objeto == "bola_verde":
+            return "verde"
+        elif objeto == "laco_laranja":
+            return "laranja"
+        elif objeto == "estrela_roxa":
+            return "roxo"
+        else:
+            return "desconhecida"
+
+    def adicionar_dificuldade_2(self, categoria, objetos):
+        """Adiciona a cor à lista de dificuldades no dicionário, evitando duplicatas."""
+ 
+        if categoria in self.dificuldade_identificar_2:
+            cor = self.objeto_cor(objetos)
+            if cor not in self.dificuldade_identificar_2[categoria]:
+                if cor == "desconhecida":
+                    pass
+                else:
+                    self.dificuldade_identificar_2[categoria].append(cor)    
 
     def verificar_clique(self, pos):
         
@@ -611,12 +822,17 @@ class Jogo:
         if ultimo_jogador:
             # Se um jogador foi encontrado, carrega-o no jogo
             self.jogador = ultimo_jogador
+            self.dificuldade = self.jogador.pontuacao_professor
             print(f"Jogador carregado: {self.jogador.nome}")
+            self.verifica_fases_jogador()
+            print(f"DIFICULDADES: {self.jogador.pontuacao_professor.values()}")
         else:
             # Caso contrário, permite a criação de um novo jogador
             print("Nenhum jogador encontrado, criando novo jogador.")
             self.jogador = Jogador(nome="Novo Jogador", pontuacao_professor=0, pontuacao_estudante=0, data=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
+        print(f"fase 1 {self.jogador.fase_1}")
+        print(f"fase 2 {self.jogador.fase_2}")
         # Criar o botão 'Voltar ao jogo →' apenas se o nome do jogador foi inserido
         botao_voltar = None
         if self.jogador:
@@ -656,6 +872,8 @@ class Jogo:
                         print(f"Botão 'Continuar Como {self.jogador}' clicado!")
                         self.menu_fases()  # Chama a função que exibe o menu de fases
                         return
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+                    self.alternar_tela()
                     
 
             # Desenha o menu
@@ -808,7 +1026,11 @@ class Jogo:
 
     def menu_fases(self):
             print("Acao_menu_fases")
+            print(f"dificuldades:{self.dificuldade.values()}")
+
+            self.jogador.pontuacao_professor = self.dificuldade
             #reseta progressao das fases(nivel) para o jogador pode jogar novamente, caso queira!
+            self.salva_estatisticas()
             self.verifica_fases_jogador()
             self.nivel_fase_1 = "primaria" 
             self.acertou3_primaria = 1
@@ -940,9 +1162,101 @@ class Jogo:
         print("acao_ajuda_faseq")
         # Adicione aqui a lógica para exibir a tela de ajuda
 
+    def ler_log(self, caminho_arquivo):
+        try:
+            with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+                conteudo = arquivo.read()
+            return conteudo.split("--------------------------------------------------")
+        except FileNotFoundError:
+            print(f"Erro: Arquivo '{caminho_arquivo}' não encontrado.")
+            return []
+
+    
+
     def acao_professor(self):
         print("Ação: Professor")
-        # Adicione aqui a lógica para mudar para a tela do professor
+        cor_texto = (0, 0, 0)
+        cor_barra = (200, 200, 200)
+        cor_bola_barra = (100, 100, 100) 
+
+        # Ler os logs do arquivo
+        caminho_log = "resultados.txt"
+        logs = self.ler_log(caminho_log)
+
+        # Scroll horizontal
+        offset_x = 0
+        velocidade_scroll = 0.5
+
+        # Configurações da barra de rolagem
+        altura_barra = 20
+        largura_total_conteudo = len(logs) * (SCREEN_WIDTH // 2)
+        tamanho_bola = max(SCREEN_WIDTH * (SCREEN_WIDTH / largura_total_conteudo), 40)  # Tamanho mínimo da bola
+        pos_bola = 0  # Posição inicial da bola na barra
+
+        # Controle do arraste
+        arrastando = False
+        mouse_x_inicial = 0
+        offset_x_inicial = 0
+
+        # Função para calcular a posição da bola na barra
+        def atualizar_pos_bola():
+            if largura_total_conteudo > SCREEN_WIDTH:
+                return -offset_x * (SCREEN_WIDTH - tamanho_bola) / (largura_total_conteudo - SCREEN_WIDTH)
+            return 0
+
+        fonte = pygame.font.SysFont("Arial", 24)
+        # Loop principal
+        running = True
+        while running:
+            self.tela.blit(self.layout_relatorio_professor, (0, 0))
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:  # Clique esquerdo
+                        mouse_x, mouse_y = pygame.mouse.get_pos()
+                        if SCREEN_HEIGHT - altura_barra <= mouse_y <= SCREEN_HEIGHT:  # Clique na barra
+                            if pos_bola <= mouse_x <= pos_bola + tamanho_bola:  # Dentro da bola
+                                arrastando = True
+                                mouse_x_inicial = mouse_x
+                                offset_x_inicial = offset_x
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:  # Soltar clique
+                        arrastando = False
+                elif event.type == pygame.MOUSEMOTION and arrastando:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    deslocamento = mouse_x - mouse_x_inicial
+                    if largura_total_conteudo > SCREEN_WIDTH:
+                        offset_x = offset_x_inicial - deslocamento  * (largura_total_conteudo - SCREEN_WIDTH) / (SCREEN_WIDTH - tamanho_bola) 
+
+            # Limitar o scroll horizontal
+            offset_x = min(0, offset_x)
+            offset_x = max(offset_x, SCREEN_WIDTH - largura_total_conteudo)
+
+            # Atualizar a posição da bola
+            pos_bola = atualizar_pos_bola()
+
+            # Renderizar os logs lado a lado
+            for i, log in enumerate(logs):
+                linhas = log.strip().split("\n")
+                for j, linha in enumerate(linhas):
+                    texto = fonte.render(linha, True, cor_texto)
+                    self.tela.blit(texto, (i * (SCREEN_WIDTH // 2) + offset_x, j * 30))
+
+            # Desenhar a barra de rolagem
+            pygame.draw.rect(self.tela, cor_barra, (0, SCREEN_HEIGHT - altura_barra, SCREEN_WIDTH, altura_barra))
+            pygame.draw.rect(
+                self.tela,
+                cor_bola_barra,
+                (pos_bola, SCREEN_HEIGHT - altura_barra, tamanho_bola, altura_barra),
+            )
+
+            pygame.display.flip()
+            self.clock.tick(60)
+
+        
 
     def acao_som(self):
         print("Ação: Som")

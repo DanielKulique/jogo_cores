@@ -2,6 +2,8 @@ import pygame, random, sys, time, os
 from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 from datetime import datetime
+from relatorio import Relatorio
+
 
 class Jogo:
     def __init__(self):
@@ -24,8 +26,8 @@ class Jogo:
         self.dificuldade_identificar = {"cores_primarias": [], "cores_secundarias": []}
         self.dificuldade_identificar_2 = {"cores_primarias": [], "cores_secundarias": []}
         self.dificuldade = {
-                            "Grande dificuldade": [{"primarias": [], "secundarias": []}], 
-                            "Leve dificuldade": [{"primarias": [], "secundarias": []}]
+                            "GRANDE DIFICULDADE": [{"primarias": [], "secundarias": []}], 
+                            "LEVE DIFICULDADE": [{"primarias": [], "secundarias": []}]
         }
 
         self.cores_primarias = {
@@ -182,15 +184,18 @@ class Jogo:
         self.layout_relatorio_professor = pygame.image.load("assets/layouts/12.png") 
         self.layout_relatorio_professor = pygame.transform.smoothscale(self.layout_relatorio_professor, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+
     #ENCAPSULANDO FUNCOES DA CLASSE JOGADOR!
     def registrar_tentativa(self, fase, nivel, acertou):
         """encapsula o registro de tentativas no jogador"""
         self.jogador.registrar_tentativa(fase, nivel, acertou)
 
+
     def completar_fase(self, fase):
         """marca as fases concluidas"""
         self.jogador.completar_fase(fase)
     
+
     def salva_estatisticas(self):
         """salva progresso jogador"""
         ultimo_jogador = Jogador.verificar_ultimo_jogador("resultados.txt")
@@ -199,6 +204,7 @@ class Jogo:
             self.jogador.salvar_log()
         else:
             self.jogador.salvar_log()
+
 
     #ENCAPSULAR QUADRADOS
     def desenhar_quadrados(self):
@@ -226,6 +232,7 @@ class Jogo:
         return None
     #FIM ENCAPSULAMENTO
     
+
     def alternar_tela(self):
         """
         Alterna entre o modo tela cheia e o modo janela.
@@ -247,7 +254,6 @@ class Jogo:
         largura_tela, altura_tela = pygame.display.get_surface().get_size()
         self.layout_menu = pygame.image.load("assets/layouts/start.png")
         self.layout_menu = pygame.transform.smoothscale(self.layout_menu, (largura_tela, altura_tela))
-
 
 
     def apagar_ultimas_linhas(self, caminho_arquivo, linhas_para_remover):
@@ -283,6 +289,7 @@ class Jogo:
         except Exception as e:
             print(f"Ocorreu um erro ao processar o arquivo: {e}")
 
+
     def adicionar_dificuldade(self, categoria, cor):
         """Adiciona a cor à lista de dificuldades no dicionário, evitando duplicatas."""
         if categoria in self.dificuldade_identificar:
@@ -291,6 +298,7 @@ class Jogo:
                     pass
                 else:
                     self.dificuldade_identificar[categoria].append(cor)
+
 
     def verificar_dificuldade(self):
         # Contadores para as cores
@@ -314,8 +322,8 @@ class Jogo:
 
         # Resetar dificuldade
         self.dificuldade = {
-            "Grande dificuldade": [{"primarias": [], "secundarias": []}],
-            "Leve dificuldade": [{"primarias": [], "secundarias": []}]
+            "GRANDE DIFICULDADE": [{"primarias": [], "secundarias": []}],
+            "LEVE DIFICULDADE": [{"primarias": [], "secundarias": []}]
         }
 
         # Classificar as cores baseadas na contagem
@@ -323,14 +331,14 @@ class Jogo:
             for cor, count in cores.items():
                 if count >= 2:  # Grande dificuldade
                     if tipo_cor == "cores_primarias":
-                        self.dificuldade["Grande dificuldade"][0]["primarias"].append(cor)
+                        self.dificuldade["GRANDE DIFICULDADE"][0]["primarias"].append(cor)
                     elif tipo_cor == "cores_secundarias":
-                        self.dificuldade["Grande dificuldade"][0]["secundarias"].append(cor)
+                        self.dificuldade["GRANDE DIFICULDADE"][0]["secundarias"].append(cor)
                 elif count == 1:  # Leve dificuldade
                     if tipo_cor == "cores_primarias":
-                        self.dificuldade["Leve dificuldade"][0]["primarias"].append(cor)
+                        self.dificuldade["LEVE DIFICULDADE"][0]["primarias"].append(cor)
                     elif tipo_cor == "cores_secundarias":
-                        self.dificuldade["Leve dificuldade"][0]["secundarias"].append(cor)
+                        self.dificuldade["LEVE DIFICULDADE"][0]["secundarias"].append(cor)
 
         # Exibir resultados para depuração
         print("Dificuldade atualizada:")
@@ -339,6 +347,7 @@ class Jogo:
 
     def iniciar_quadrados(self):
         """Inicializa os quadrados em posições aleatórias baseadas nas coordenadas fornecidas."""
+        '''
         coordenadas_disponiveis = [
             (840, 150),
             (1080, 170),
@@ -353,6 +362,22 @@ class Jogo:
             (1040, 370),
             (850, 420),
         ]
+        '''
+        coordenadas_disponiveis = [
+            (900, 170),
+            (1140, 190),
+            (900, 330),
+            (1140, 400),
+            (950, 470),
+        ]
+        coordenadas_disponiveis_fase2 = [
+            (870, 170),
+            (1110, 190),
+            (860, 330),
+            (1100, 400),
+            (910, 470),
+        ]
+
         if self.nivel_fase_2 == "primaria":
             nomes = ["bola_azul", "osso_amarelo", "osso_preto", "osso_vermelho", "urso_marrom"]
             
@@ -385,6 +410,7 @@ class Jogo:
                 print(f"{nome} foi removido com sucesso!")
             else:
                 print(f"Erro: {nome} não encontrado.")
+
 
     def inicia_caixa(self, objeto): 
 
@@ -419,6 +445,7 @@ class Jogo:
         for botao in self.botoes.values():
             botao.desenhar(self.tela)
 
+
     def desenhar_menu_fases(self):
         """desenha o layout do menu de fases"""
         self.verifica_fases_jogador()
@@ -433,6 +460,7 @@ class Jogo:
         for botao in self.botoes_menu_fases.values():
             botao.desenhar(self.tela)
 
+
     def desenhar_configuracao(self):
         """Desenha o layout do menu inicial com os botões."""
         # Desenhar o fundo
@@ -442,17 +470,25 @@ class Jogo:
         for botao in self.botoes_config.values():
             botao.desenhar(self.tela)
 
+
     def iniciar_bolinhas(self):
      
         # Sorteia uma bolinha neutra aleatoriamente
         indice_neutra = random.randint(0, 3)
-        
+        '''
         # Coordenadas fixas para as bolinhas
         coordenadas = [
             (815, 216),  # Primeira bolinha
             (1107, 216),  # Segunda bolinha
             (815, 464),  # Terceira bolinha
             (1107, 464),  # Quarta bolinha
+        ]'''
+
+        coordenadas = [
+            (870, 236),  # Primeira bolinha
+            (1162, 236),  # Segunda bolinha
+            (870, 484),  # Terceira bolinha
+            (1162, 484),  # Quarta bolinha
         ]
         
         # Copia as cores disponíveis
@@ -478,12 +514,14 @@ class Jogo:
             # Adiciona a bolinha à lista
             self.bolinhas.append(Bolinha(x, y, cor))
 
+
     def delay(self, tempo_inicio, delay):
         while True:
             tempo_atual = pygame.time.get_ticks()
             if tempo_atual - tempo_inicio >= delay:
                 print("10 segundos se passaram!")
                 break
+
 
     def verificar_clique_bolinha(self, pos):
         """
@@ -504,6 +542,7 @@ class Jogo:
         # Se nenhuma bolinha válida foi clicada
         return False
 
+
     def obter_nome_cor(self, rgb):
         # Verifica nas cores primárias
         for nome, valor in self.cores_primarias.items():
@@ -515,7 +554,6 @@ class Jogo:
                 return nome
         # Caso não encontre
         return "desconhecida"
-
 
 
     def desenhar_primeira_fase(self):
@@ -659,6 +697,7 @@ class Jogo:
             self.desenhar_primeira_fase()
             pygame.display.flip()
             self.clock.tick(60)
+
 
     def segunda_fase(self):
         self.menu_atual = "segunda_fase"
@@ -805,8 +844,6 @@ class Jogo:
                 if botao.acao:
                     botao.acao()
                 return
-
-
 
 
     def menu_nome(self):
@@ -993,9 +1030,9 @@ class Jogo:
                         self.salva_estatisticas()
                         self.jogador = Jogador(
                             nome = input_text,
+                            data=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             pontuacao_professor = 0,
                             pontuacao_estudante = "",
-                            data=datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
                             )
                         print(f"Nome do jogador: {self.jogador.nome}")
                         # Aqui você pode chamar a função menu_fases 
@@ -1072,7 +1109,6 @@ class Jogo:
                 self.clock.tick(60)
 
 
-
     def acao_ajuda_jogo(self):
         print("Ação: Ajuda")
         
@@ -1113,6 +1149,7 @@ class Jogo:
 
             pygame.display.flip()
             self.clock.tick(60)  # Limita o loop a 60 quadros por segundo
+
 
     def acao_ajuda_fase1(self):
         print("acao_ajuda_fase1")        
@@ -1156,8 +1193,6 @@ class Jogo:
             pygame.display.flip()
             self.clock.tick(60)  # Limita o loop a 60 quadros por segun
 
-    
-
     def acao_ajuda_fase2(self):
         print("acao_ajuda_faseq")
         # Adicione aqui a lógica para exibir a tela de ajuda
@@ -1171,92 +1206,10 @@ class Jogo:
             print(f"Erro: Arquivo '{caminho_arquivo}' não encontrado.")
             return []
 
-    
-
     def acao_professor(self):
-        print("Ação: Professor")
-        cor_texto = (0, 0, 0)
-        cor_barra = (200, 200, 200)
-        cor_bola_barra = (100, 100, 100) 
 
-        # Ler os logs do arquivo
-        caminho_log = "resultados.txt"
-        logs = self.ler_log(caminho_log)
-
-        # Scroll horizontal
-        offset_x = 0
-        velocidade_scroll = 0.5
-
-        # Configurações da barra de rolagem
-        altura_barra = 20
-        largura_total_conteudo = len(logs) * (SCREEN_WIDTH // 2)
-        tamanho_bola = max(SCREEN_WIDTH * (SCREEN_WIDTH / largura_total_conteudo), 40)  # Tamanho mínimo da bola
-        pos_bola = 0  # Posição inicial da bola na barra
-
-        # Controle do arraste
-        arrastando = False
-        mouse_x_inicial = 0
-        offset_x_inicial = 0
-
-        # Função para calcular a posição da bola na barra
-        def atualizar_pos_bola():
-            if largura_total_conteudo > SCREEN_WIDTH:
-                return -offset_x * (SCREEN_WIDTH - tamanho_bola) / (largura_total_conteudo - SCREEN_WIDTH)
-            return 0
-
-        fonte = pygame.font.SysFont("Arial", 24)
-        # Loop principal
-        running = True
-        while running:
-            self.tela.blit(self.layout_relatorio_professor, (0, 0))
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:  # Clique esquerdo
-                        mouse_x, mouse_y = pygame.mouse.get_pos()
-                        if SCREEN_HEIGHT - altura_barra <= mouse_y <= SCREEN_HEIGHT:  # Clique na barra
-                            if pos_bola <= mouse_x <= pos_bola + tamanho_bola:  # Dentro da bola
-                                arrastando = True
-                                mouse_x_inicial = mouse_x
-                                offset_x_inicial = offset_x
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:  # Soltar clique
-                        arrastando = False
-                elif event.type == pygame.MOUSEMOTION and arrastando:
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    deslocamento = mouse_x - mouse_x_inicial
-                    if largura_total_conteudo > SCREEN_WIDTH:
-                        offset_x = offset_x_inicial - deslocamento  * (largura_total_conteudo - SCREEN_WIDTH) / (SCREEN_WIDTH - tamanho_bola) 
-
-            # Limitar o scroll horizontal
-            offset_x = min(0, offset_x)
-            offset_x = max(offset_x, SCREEN_WIDTH - largura_total_conteudo)
-
-            # Atualizar a posição da bola
-            pos_bola = atualizar_pos_bola()
-
-            # Renderizar os logs lado a lado
-            for i, log in enumerate(logs):
-                linhas = log.strip().split("\n")
-                for j, linha in enumerate(linhas):
-                    texto = fonte.render(linha, True, cor_texto)
-                    self.tela.blit(texto, (i * (SCREEN_WIDTH // 2) + offset_x, j * 30))
-
-            # Desenhar a barra de rolagem
-            pygame.draw.rect(self.tela, cor_barra, (0, SCREEN_HEIGHT - altura_barra, SCREEN_WIDTH, altura_barra))
-            pygame.draw.rect(
-                self.tela,
-                cor_bola_barra,
-                (pos_bola, SCREEN_HEIGHT - altura_barra, tamanho_bola, altura_barra),
-            )
-
-            pygame.display.flip()
-            self.clock.tick(60)
-
-        
+        rela = Relatorio()  # Instancia a classe Jogo
+        rela.acao_professor()  # Executa a função acao_professor
 
     def acao_som(self):
         print("Ação: Som")
@@ -1267,7 +1220,6 @@ class Jogo:
         self.salva_estatisticas()
         pygame.quit()
         sys.exit()
-
 
 # Inicializando o jogo
 if __name__ == "__main__":

@@ -23,15 +23,17 @@ def acao_nome_jogador():
 class Jogador:
     def __init__(self, nome, pontuacao_professor, pontuacao_estudante, data):
         self.nome = nome
-        self.pontuacao_professor = pontuacao_professor
-        self.pontuacao_estudante = pontuacao_estudante
+        self.data = data
+        self.fase_1 = False
+        self.fase_2 = False
         self.tentativas_fase1_nivel_1 = 0
         self.tentativas_fase1_nivel_2 = 0
         self.tentativas_fase2_nivel_1 = 0
         self.tentativas_fase2_nivel_2 = 0
-        self.fase_1 = False
-        self.fase_2 = False
-        self.data = data
+        self.pontuacao_professor = pontuacao_professor
+        self.pontuacao_estudante = pontuacao_estudante
+        
+        
 
     def completar_fase(self, fase):
         if fase == 1:
@@ -63,18 +65,31 @@ class Jogador:
             pontuacao += (100 - self.tentativas_fase2_nivel_1 - self.tentativas_fase2_nivel_2)
         #return max(0, pontuacao)
 
+    
+
+
     def __str__(self):
+        if self.fase_1:
+            fase1 = "SIM"
+        else:
+            fase1 = "NAO"
+        if self.fase_2:
+            fase2 = "SIM"
+        else:
+            fase2 = "NAO"
+
         return (f"Jogador: {self.nome}\n"
-                f"Pontuação Estudante: {self.pontuacao_estudante}\n"
-                f"Pontuação Professor: {self.pontuacao_professor}\n"
-                f"Fase 1 Concluída: {self.fase_1}\n"
-                f"Fase 2 Concluída: {self.fase_2}\n"
-                f"Tentativas Fase 1 Nível 1: {self.tentativas_fase1_nivel_1}\n"
-                f"Tentativas Fase 1 Nível 2: {self.tentativas_fase1_nivel_2}\n"
-                f"Tentativas Fase 2 Nível 1: {self.tentativas_fase2_nivel_1}\n"
-                f"Tentativas Fase 2 Nível 2: {self.tentativas_fase2_nivel_2}\n"
-                f"Pontuação Final: \n" #self.calcular_pontuacao()
-                f"Data: {self.data}")
+                f"Data: {self.data}\n"
+                f"Fase 1 Concluida: {fase1}\n"
+                f"Fase 2 Concluida: {fase2}\n"
+                f"Tentativas Fase 1 Nivel 1: {self.tentativas_fase1_nivel_1}\n"
+                f"Tentativas Fase 1 Nivel 2: {self.tentativas_fase1_nivel_2}\n"
+                f"Tentativas Fase 2 Nivel 1: {self.tentativas_fase2_nivel_1}\n"
+                f"Tentativas Fase 2 Nivel 2: {self.tentativas_fase2_nivel_2}\n"
+                f"Pontuacao Final: \n"  
+                f"Pontuacao Estudante: {self.pontuacao_estudante}\n"
+                f"Pontuacao Professor: {self.pontuacao_professor}"                
+                )
 
     def salvar_log(self, caminho_arquivo="resultados.txt"):
         """
@@ -118,18 +133,18 @@ class Jogador:
         try:
             # Dados básicos
             nome = linhas[0].split(": ", 1)[1].strip() if len(linhas) > 0 and ": " in linhas[0] else "Desconhecido"
-            pontuacao_estudante_str = linhas[1].split(": ", 1)[1].strip() if len(linhas) > 1 and ": " in linhas[1] else "0"
-            pontuacao_professor_str = linhas[2].split(": ", 1)[1].strip() if len(linhas) > 2 and ": " in linhas[2] else "{}"
+            data = linhas[-1].split(": ", 1)[1].strip() if len(linhas) > 8 and ": " in linhas[-1] else "Data desconhecida"
             fase_1_str = linhas[3].split(": ", 1)[1].strip() if len(linhas) > 3 and ": " in linhas[3] else "False"
             fase_2_str = linhas[4].split(": ", 1)[1].strip() if len(linhas) > 4 and ": " in linhas[4] else "False"
-            data = linhas[-1].split(": ", 1)[1].strip() if len(linhas) > 8 and ": " in linhas[-1] else "Data desconhecida"
+            pontuacao_estudante_str = linhas[1].split(": ", 1)[1].strip() if len(linhas) > 1 and ": " in linhas[1] else "0"
+            pontuacao_professor_str = linhas[2].split(": ", 1)[1].strip() if len(linhas) > 2 and ": " in linhas[2] else "{}"
 
             # Conversão de pontuação para dicionário (usando `ast.literal_eval`)
             try:
                 pontuacao_professor = ast.literal_eval(pontuacao_professor_str)
             except (ValueError, SyntaxError):
-                pontuacao_professor = {"Grande dificuldade": [{"primarias": [], "secundarias": []}], 
-                                    "Leve dificuldade": [{"primarias": [], "secundarias": []}]}
+                pontuacao_professor = {"GRANDE DIFICULDADE": [{"primarias": [], "secundarias": []}], 
+                                    "LEVE DIFICULDADE": [{"primarias": [], "secundarias": []}]}
 
             # Conversão segura para inteiros e booleanos
             pontuacao_estudante = int(pontuacao_estudante_str) if pontuacao_estudante_str.isdigit() else 0

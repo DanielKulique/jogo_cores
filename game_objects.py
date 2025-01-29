@@ -69,26 +69,17 @@ class Jogador:
 
 
     def __str__(self):
-        if self.fase_1:
-            fase1 = "SIM"
-        else:
-            fase1 = "NAO"
-        if self.fase_2:
-            fase2 = "SIM"
-        else:
-            fase2 = "NAO"
-
         return (f"Jogador: {self.nome}\n"
                 f"Data: {self.data}\n"
-                f"Fase 1 Concluida: {fase1}\n"
-                f"Fase 2 Concluida: {fase2}\n"
+                f"Fase 1 Concluida: {self.fase_1}\n"
+                f"Fase 2 Concluida: {self.fase_2}\n"
                 f"Tentativas Fase 1 Nivel 1: {self.tentativas_fase1_nivel_1}\n"
                 f"Tentativas Fase 1 Nivel 2: {self.tentativas_fase1_nivel_2}\n"
                 f"Tentativas Fase 2 Nivel 1: {self.tentativas_fase2_nivel_1}\n"
                 f"Tentativas Fase 2 Nivel 2: {self.tentativas_fase2_nivel_2}\n"
-                f"Pontuacao Final: \n"  
+                f"Pontuacao Final: \n"
                 f"Pontuacao Estudante: {self.pontuacao_estudante}\n"
-                f"Pontuacao Professor: {self.pontuacao_professor}"                
+                f"Pontuacao Professor: {self.pontuacao_professor}"
                 )
 
     def salvar_log(self, caminho_arquivo="resultados.txt"):
@@ -101,8 +92,8 @@ class Jogador:
     @staticmethod
     def verificar_ultimo_jogador(caminho_arquivo="resultados.txt"):
         """
-        Verifica se há um jogador registrado no arquivo de log e retorna o último jogador registrado.
-        Caso não exista nenhum registro, retorna None.
+        Verifica o último registro de jogador no arquivo de log, considerando que cada registro
+        começa com "Jogador:" e termina com "Pontuacao Professor:". Ignora linhas de separadores.
         """
         import os
         import ast  # Para avaliar o dicionário de string como um objeto Python
@@ -112,53 +103,84 @@ class Jogador:
             return None
 
         with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
-            conteudo = arquivo.read().strip()
+            linhas = arquivo.readlines()
 
-        if not conteudo:
-            print("Arquivo de log está vazio.")
+        jogadores = []
+        jogador_atual = []
+        coletando = False
+
+        for linha in linhas:
+            linha = linha.strip()
+            
+            # Ignorar separadores ou linhas vazias
+            if linha.startswith("-") and all(c == "-" for c in linha):
+                continue
+
+            # Início de um novo jogador
+            if linha.lower().startswith("jogador: "):  # Ignorar maiúsculas/minúsculas
+                if jogador_atual:
+                    jogadores.append(jogador_atual)  # Adicionar o jogador anterior à lista
+                jogador_atual = [linha]
+                coletando = True
+            elif coletando:
+                # Final do bloco (linha com "Pontuacao Professor:")
+                if linha.lower().startswith("pontuacao professor: "):  # Ignorar maiúsculas/minúsculas
+                    jogador_atual.append(linha)
+                    jogadores.append(jogador_atual)  # Adicionar o bloco completo
+                    jogador_atual = []  # Reiniciar o buffer
+                    coletando = False
+                else:
+                    jogador_atual.append(linha)
+
+        # Caso haja um último jogador ainda em processamento
+        if jogador_atual:
+            jogadores.append(jogador_atual)
+
+        if not jogadores:
+            print("Nenhum jogador encontrado no arquivo.")
             return None
 
-        # Dividimos os registros de jogadores pelo separador usado no método salvar_log()
-        registros = conteudo.split("-" * 50)
-        registros = [registro.strip() for registro in registros if registro.strip()]
+        # Pegar o último jogador da lista
+        ultimo_jogador = jogadores[-1]
 
-        if not registros:
-            print("Nenhum registro de jogador encontrado.")
-            return None
-
-        # Pega o último registro válido
-        ultimo_registro = registros[-1]
-        linhas = ultimo_registro.split("\n")
-
+        # Processar os dados do último jogador
         try:
-            # Dados básicos
-            nome = linhas[0].split(": ", 1)[1].strip() if len(linhas) > 0 and ": " in linhas[0] else "Desconhecido"
-            data = linhas[-1].split(": ", 1)[1].strip() if len(linhas) > 8 and ": " in linhas[-1] else "Data desconhecida"
-            fase_1_str = linhas[3].split(": ", 1)[1].strip() if len(linhas) > 3 and ": " in linhas[3] else "False"
-            fase_2_str = linhas[4].split(": ", 1)[1].strip() if len(linhas) > 4 and ": " in linhas[4] else "False"
-            pontuacao_estudante_str = linhas[1].split(": ", 1)[1].strip() if len(linhas) > 1 and ": " in linhas[1] else "0"
-            pontuacao_professor_str = linhas[2].split(": ", 1)[1].strip() if len(linhas) > 2 and ": " in linhas[2] else "{}"
+            dados = {}
+            for linha in ultimo_jogador:
+                if ": " in linha:
+                    chave, valor = linha.split(": ", 1)
+                    dados[chave.strip().lower()] = valor.strip()
 
-            # Conversão de pontuação para dicionário (usando `ast.literal_eval`)
+            nome = dados.get("jogador", "Desconhecido")
+            data = dados.get("data", "Data desconhecida")
+            fase_1 = dados.get("fase 1 concluida", "False").lower() == "true"
+            fase_2 = dados.get("fase 2 concluida", "False").lower() == "true"
+            tentativas_fase1_nivel_1 = int(dados.get("tentativas fase 1 nivel 1", "0"))
+            tentativas_fase1_nivel_2 = int(dados.get("tentativas fase 1 nivel 2", "0"))
+            tentativas_fase2_nivel_1 = int(dados.get("tentativas fase 2 nivel 1", "0"))
+            tentativas_fase2_nivel_2 = int(dados.get("tentativas fase 2 nivel 2", "0"))
+            pontuacao_estudante = int(dados.get("pontuacao estudante", "0"))
+
+            # Processar "Pontuacao Professor"
+            pontuacao_professor_str = dados.get("pontuacao professor", "{}")
             try:
                 pontuacao_professor = ast.literal_eval(pontuacao_professor_str)
             except (ValueError, SyntaxError):
-                pontuacao_professor = {"GRANDE DIFICULDADE": [{"primarias": [], "secundarias": []}], 
+                pontuacao_professor = {"GRANDE DIFICULDADE": [{"primarias": [], "secundarias": []}],
                                     "LEVE DIFICULDADE": [{"primarias": [], "secundarias": []}]}
 
-            # Conversão segura para inteiros e booleanos
-            pontuacao_estudante = int(pontuacao_estudante_str) if pontuacao_estudante_str.isdigit() else 0
-            fase_1 = fase_1_str.lower() == "true"
-            fase_2 = fase_2_str.lower() == "true"
-
-            # Cria o jogador e ajusta as propriedades
+            # Criar o jogador com os dados processados
             jogador = Jogador(nome, pontuacao_professor, pontuacao_estudante, data)
             jogador.fase_1 = fase_1
             jogador.fase_2 = fase_2
+            jogador.tentativas_fase1_nivel_1 = tentativas_fase1_nivel_1
+            jogador.tentativas_fase1_nivel_2 = tentativas_fase1_nivel_2
+            jogador.tentativas_fase2_nivel_1 = tentativas_fase2_nivel_1
+            jogador.tentativas_fase2_nivel_2 = tentativas_fase2_nivel_2
 
             return jogador
-        except (IndexError, ValueError, SyntaxError) as e:
-            print(f"Erro ao processar o último registro: {e}")
+        except Exception as e:
+            print(f"Erro ao processar o último jogador: {e}")
             return None
 
 
@@ -408,8 +430,61 @@ class Quadrado:
         # Desenhar o quadrado com a imagem
         tela.blit(self.imagem, (self.x, self.y))
 
+    def desenhar_x(self, tela):
+        """Desenha um 'X' vermelho em cima do quadrado."""
+        tamanho = self.lado * 1.2  # Ajusta o tamanho do 'X' baseado no lado do quadrado
+        cor = (255, 0, 0)  # Vermelho
+        largura = 10  # Espessura das linhas do 'X'
+
+        # Coordenadas para as linhas do 'X'
+        inicio_linha1 = (self.x, self.y)
+        fim_linha1 = (self.x + self.lado, self.y + self.lado)
+        inicio_linha2 = (self.x, self.y + self.lado)
+        fim_linha2 = (self.x + self.lado, self.y)
+
+        # Desenha as duas linhas do 'X'
+        pygame.draw.line(tela, cor, inicio_linha1, fim_linha1, largura)
+        pygame.draw.line(tela, cor, inicio_linha2, fim_linha2, largura)
 
 
+class Audio:
+    def __init__(self):
+        pygame.mixer.init()  # Inicializa o mixer do pygame
+
+        # Dicionário de caminhos dos áudios
+        self.caminhos = {
+            "cor_primaria": "assets/sons/cor_primaria.mp3",
+            "cor_secundaria": "assets/sons/cor_secundaria.mp3",
+            "proximo_nivel": "assets/sons/proximo_nivel.mp3",
+            "proxima_fase": "assets/sons/proxima_fase.mp3",
+            "caixas_organizadas": "assets/sons/caixas_organizadas.mp3",
+            "caixa_primaria": "assets/sons/caixa_primaria.mp3",
+            "caixa_secundaria": "assets/sons/caixa_secundaria.mp3",
+            "obrigado_caixa_primaria": "assets/sons/obrigado_caixa_primaria.mp3",
+            "bolinha_errada": "assets/sons/bolinha_errada.mp3",
+            "aprender_primarias": "assets/sons/aprender_primarias.mp3",
+            "aprender_secundarias": "assets/sons/aprender_secundarias.mp3",
+        }
+
+    def reproduzir_audio(self, chave, volume=1.0):
+        """
+        Reproduz um áudio baseado na chave do dicionário de caminhos.
+
+        Args:
+            chave (str): Chave correspondente ao áudio no dicionário.
+            volume (float): Volume do áudio (0.0 a 1.0). Padrão é 1.0.
+        """
+        try:
+            if chave in self.caminhos:
+                caminho_audio = self.caminhos[chave]
+                som = pygame.mixer.Sound(caminho_audio)
+                som.set_volume(volume)
+                som.play()
+                print(f"Reproduzindo áudio: {chave} ({caminho_audio})")
+            else:
+                print(f"Chave '{chave}' não encontrada no dicionário de áudios.")
+        except Exception as e:
+            print(f"Erro ao reproduzir o áudio '{chave}': {e}")
 
 
 

@@ -1,5 +1,5 @@
 import pygame, random, sys, time, os
-from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado
+from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado, Audio
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 from datetime import datetime
 from relatorio import Relatorio
@@ -12,7 +12,9 @@ class Jogo:
         self.tela = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.modo_tela_cheia = True  # Estado inicial
         self.menu_atual = None
-
+        self.data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.volume = 1.0
+        self.audio = Audio()
         pygame.display.set_caption("Menu Inicial")
         self.clock = pygame.time.Clock()
         self.running = True
@@ -72,9 +74,9 @@ class Jogo:
 
         self.jogador = Jogador(
             nome = "",
-            pontuacao_professor = 0,
+            pontuacao_professor = None,
             pontuacao_estudante = "",
-            data=datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+            data= self.data
             )
 
         self.fase_1 = "Desbloqueada"
@@ -102,17 +104,18 @@ class Jogo:
             "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=self.acao_ajuda_fase1),
             #"som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=self.acao_som),
         }
+        self.tipo_acao = ""
         self.botoes_fase_1 = {
             #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
             "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.acao_configuracao),
             "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=None),
-            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=None),
+            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao)),
         }
         self.botoes_fase_2 = {
             #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
             "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=self.acao_configuracao),
             "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=None),
-            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=None),
+            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao)),
         }
 
         self.botao_especial_menu = {
@@ -522,6 +525,7 @@ class Jogo:
                 print("10 segundos se passaram!")
                 break
 
+    
 
     def verificar_clique_bolinha(self, pos):
         """
@@ -529,15 +533,25 @@ class Jogo:
         """
         for bolinha in self.bolinhas:
             if bolinha.foi_clicada(pos):
+
+                erradas = self.cores_erradas.values()
+
                 if self.nivel_fase_1 == "primaria":
                     nivel = self.cores_primarias.values()  # nivel_1 cores primárias
                 elif self.nivel_fase_1 == "secundaria":
                     nivel = self.cores_secundarias.values()  # nivel_2 cores secundárias
                 
+
                 if bolinha.cor in nivel:
                     print(f"AQUI--------> {bolinha.cor}")
                     self.bolinhas.remove(bolinha)
                     return True  # Bolinha correta foi clicada
+                
+                elif bolinha.cor in erradas:
+                    print("bolinha errada clicada")
+                    self.erro = True
+                    return False
+
 
         # Se nenhuma bolinha válida foi clicada
         return False
@@ -569,11 +583,9 @@ class Jogo:
         for bolinha in self.bolinhas:
             bolinha.desenhar(self.tela)
         
-        
         for bolinha in self.bolinhas:
             if self.erro and bolinha.cor in self.cores_erradas.values():
                 bolinha.desenhar_x(self.tela)
-                    
 
     def desenhar_segunda_fase(self):
         if self.nivel_fase_2 == "primaria":
@@ -593,7 +605,8 @@ class Jogo:
 
     def primeira_fase(self):
         self.menu_atual = "primeira_fase"
-        
+        self.acao_som("cor_primaria")
+        self.tipo_acao = "cor_primaria"
 
         print("Iniciando Fase 1")
         while self.running:
@@ -627,14 +640,15 @@ class Jogo:
 
                         if self.acertou3_primaria == 3:
                             self.nivel_fase_1 = "secundaria"
+                            self.tipo_acao = "cor_secundaria"
                             self.erro = False
 
                             self.tela.blit(self.layout_acertou_nivel_1, (0, 0))
                             pygame.display.flip()
                             #delay
-                            
                             tempo_inicio = pygame.time.get_ticks()
                             self.delay(tempo_inicio, 3000)
+                            self.acao_som("cor_secundaria")
                             self.acertou3_primaria = 1
                             self.acertou3_secundaria = 1
                             self.desenhar_primeira_fase()
@@ -662,6 +676,7 @@ class Jogo:
                             self.fase_2 = "Desbloqueada"
                             self.jogador.fase_1 = True
                             self.botoes_menu_fases["fase_2"] = Botao(500, SCREEN_HEIGHT - 295, 275, 50, "Fase 2", (255, 150, 150), acao=self.segunda_fase)
+                            self.salva_estatisticas()
                             self.menu_fases()
                         self.acertou3_secundaria += 1
                         #repetir a logica da fase primaria
@@ -671,8 +686,16 @@ class Jogo:
                         print("errou cor primaria! tente novamente")
                         self.jogador.tentativas_fase1_nivel_1 += 1  
 
-                        self.erro = True    
-                        
+                        self.acao_som("bolinha_errada")
+                        print("ESTA AQUI")
+
+                        self.tela.blit(self.layout_errou, (0, 0))
+                        pygame.display.flip()
+                        self.clock.tick(60)
+                        tempo_inicio = pygame.time.get_ticks()
+                        self.delay(tempo_inicio, 4000)
+
+
                         for bolinha in self.bolinhas:
                             nome_cor = self.obter_nome_cor(bolinha.cor)  # Obtem o nome da cor baseado no RGB
                             self.adicionar_dificuldade("cores_primarias", nome_cor)
@@ -685,7 +708,7 @@ class Jogo:
 
                     elif not escolhida and self.nivel_fase_1 == "secundaria":
                         self.jogador.tentativas_fase1_nivel_2 += 1
-                        self.erro = True
+
                         print("errou cor secundaria! tente novamente")
                         for bolinha in self.bolinhas:
                             nome_cor = self.obter_nome_cor(bolinha.cor)  # Obtem o nome da cor baseado no RGB
@@ -700,7 +723,9 @@ class Jogo:
 
 
     def segunda_fase(self):
+        self.tipo_acao = "caixa_primaria"
         self.menu_atual = "segunda_fase"
+        self.acao_som("caixa_primaria")
         self.nivel_fase_2 = "primaria"  # Garante que a fase inicie no nível primário
         self.acertos_nivel1 = 0
         self.acertos_nivel2 = 0
@@ -729,6 +754,7 @@ class Jogo:
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
+                    self.verificar_clique(pos)
                     print(f"Posição do clique: {pos}")
 
                     if self.nivel_fase_2 == 'primaria':
@@ -780,7 +806,9 @@ class Jogo:
                 print(f"{self.dificuldade_identificar_2.values()}")
                 tempo_inicio = pygame.time.get_ticks()
                 self.delay(tempo_inicio, 3000)
+                self.tipo_acao = "caixa_secundaria"
                 self.nivel_fase_2 = "secundaria"
+                self.acao_som("caixa_secundaria")
                 self.acertos_nivel1 = 0  # Reseta o contador para evitar interferências
                 self.quadrados_caixa.clear()
                 self.iniciar_quadrados()  # Inicializa os quadrados do nível secundário
@@ -789,10 +817,11 @@ class Jogo:
             elif self.nivel_fase_2 == 'secundaria' and self.acertos_nivel2 == 3:
                 print("Você completou a Fase 2! Parabéns!")
                 print(f"{self.dificuldade_identificar_2.values()}")
+                self.jogador.fase_2 = True
                 self.verificar_dificuldade()
+                self.salva_estatisticas()
                 tempo_inicio = pygame.time.get_ticks()
                 self.delay(tempo_inicio, 3000)
-                self.jogador.fase_2 = True
                 self.menu_fases()  # Retorna ao menu de fases
                 running = False
 
@@ -855,18 +884,20 @@ class Jogo:
     
         # Verifica se há um jogador registrado no log
         ultimo_jogador = Jogador.verificar_ultimo_jogador("resultados.txt")
-        
+        print(ultimo_jogador)
+
         if ultimo_jogador:
             # Se um jogador foi encontrado, carrega-o no jogo
             self.jogador = ultimo_jogador
             self.dificuldade = self.jogador.pontuacao_professor
+            self.jogador.data = self.data
             print(f"Jogador carregado: {self.jogador.nome}")
             self.verifica_fases_jogador()
-            print(f"DIFICULDADES: {self.jogador.pontuacao_professor.values()}")
+            #print(f"DIFICULDADES: {self.jogador.pontuacao_professor.values()}")
         else:
             # Caso contrário, permite a criação de um novo jogador
             print("Nenhum jogador encontrado, criando novo jogador.")
-            self.jogador = Jogador(nome="Novo Jogador", pontuacao_professor=0, pontuacao_estudante=0, data=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            self.jogador = Jogador(nome="Novo Jogador", pontuacao_professor= None, pontuacao_estudante=0, data=self.data)
 
         print(f"fase 1 {self.jogador.fase_1}")
         print(f"fase 2 {self.jogador.fase_2}")
@@ -1026,17 +1057,35 @@ class Jogo:
                         # Apaga o último caractere se houver texto
                         input_text = input_text[:-1]
                     elif event.key == pygame.K_RETURN:  # Enter
-                        #cria novo jogador
-                        self.salva_estatisticas()
+                        # Salva as estatísticas do jogador atual (se existir)
+                        if self.jogador:
+                            self.salva_estatisticas()
+                        
+                        # Cria um novo jogador com todos os atributos resetados
                         self.jogador = Jogador(
-                            nome = input_text,
-                            data=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            pontuacao_professor = 0,
-                            pontuacao_estudante = "",
-                            )
+                            nome=input_text,
+                            data=self.data,
+                            pontuacao_professor={
+                                "GRANDE DIFICULDADE": [{"primarias": [], "secundarias": []}],
+                                "LEVE DIFICULDADE": [{"primarias": [], "secundarias": []}]
+                            },
+                            pontuacao_estudante=0
+                        )
+                        # Reseta os demais atributos para valores padrão
+                        self.jogador.fase_1 = False
+                        self.jogador.fase_2 = False
+                        self.jogador.tentativas_fase1_nivel_1 = 0
+                        self.jogador.tentativas_fase1_nivel_2 = 0
+                        self.jogador.tentativas_fase2_nivel_1 = 0
+                        self.jogador.tentativas_fase2_nivel_2 = 0
+
                         print(f"Nome do jogador: {self.jogador.nome}")
-                        # Aqui você pode chamar a função menu_fases 
+
+                        # Salva as estatísticas iniciais do novo jogador
+                        self.verifica_fases_jogador()
                         self.salva_estatisticas()
+
+                        # Chama o menu de fases
                         self.menu_fases()
                         return
                     else:
@@ -1060,14 +1109,15 @@ class Jogo:
                 self.fase_1 = "Desbloqueada"
             if self.jogador.fase_2:
                 self.fase_2 = "Desbloqueada"
+        
 
     def menu_fases(self):
             print("Acao_menu_fases")
-            print(f"dificuldades:{self.dificuldade.values()}")
+            #print(f"dificuldades:{self.dificuldade.values()}")
 
             self.jogador.pontuacao_professor = self.dificuldade
             #reseta progressao das fases(nivel) para o jogador pode jogar novamente, caso queira!
-            self.salva_estatisticas()
+            #self.salva_estatisticas()
             self.verifica_fases_jogador()
             self.nivel_fase_1 = "primaria" 
             self.acertou3_primaria = 1
@@ -1211,9 +1261,32 @@ class Jogo:
         rela = Relatorio()  # Instancia a classe Jogo
         rela.acao_professor()  # Executa a função acao_professor
 
-    def acao_som(self):
+    def acao_som(self, tipo_audio):
         print("Ação: Som")
-        # Adicione aqui a lógica para ajustar as configurações de som
+
+        # Mapeamento de tipos de áudio para os sons correspondentes
+        mapa_audios = {
+            "cor_primaria": "cor_primaria",
+            "cor_secundaria": "cor_secundaria",
+            "proximo_nivel": "proximo_nivel",
+            "proxima_fase": "proxima_fase",
+            "caixas_organizadas": "caixas_organizadas",
+            "caixa_primaria": "caixa_primaria",
+            "caixa_secundaria": "caixa_secundaria",
+            "obrigado_caixa_primaria": "obrigado_caixa_primaria",
+            "bolinha_errada": "bolinha_errada",
+            "aprender_primarias": "aprender_primarias",
+            "aprender_secundarias": "aprender_secundarias",
+
+        }
+
+        # Obtém o som correspondente ao tipo de áudio fornecido
+        audio = mapa_audios.get(tipo_audio)
+
+        if audio:
+            self.audio.reproduzir_audio(audio)
+        else:
+            print(f"Tipo de áudio '{tipo_audio}' não encontrado.")
 
     def acao_sair(self): #APLICAR SALVAMENTO DE JOGO!!!!!!!!!!!
         print("Ação: Sair")

@@ -22,9 +22,9 @@ Pontuacao Estudante: 0
 Pontuacao Professor: {'Grande dificuldade': [{'primarias': [], 'secundarias': []}], 'Leve dificuldade': [{'primarias': [], 'secundarias': []}]}
 --------------------------------------------------
 Jogador: mathias
-Data: {'Grande dificuldade': [{'primarias': [], 'secundarias': []}], 'Leve dificuldade': [{'primarias': [], 'secundarias': []}]}
-Fase 1 Concluida: NAO
-Fase 2 Concluida: NAO
+Data: 2025-01-28 16:52:42
+Fase 1 Concluida: True
+Fase 2 Concluida: True
 Tentativas Fase 1 Nivel 1: 0
 Tentativas Fase 1 Nivel 2: 0
 Tentativas Fase 2 Nivel 1: 0
@@ -33,27 +33,63 @@ Pontuacao Final:
 Pontuacao Estudante: 0
 Pontuacao Professor: {'Grande dificuldade': [{'primarias': [], 'secundarias': []}], 'Leve dificuldade': [{'primarias': [], 'secundarias': []}]}
 --------------------------------------------------
-Jogador: daniel
-Data: Erro ao converter Pontuacao Professor: name 'json' is not defined
-Fase 1 Concluida: NAO
-Fase 2 Concluida: NAO
+Jogador: josue
+Data: 2025-01-28 17:00:50
+Fase 1 Concluida: False
+Fase 2 Concluida: False
 Tentativas Fase 1 Nivel 1: 0
 Tentativas Fase 1 Nivel 2: 0
 Tentativas Fase 2 Nivel 1: 0
 Tentativas Fase 2 Nivel 2: 0
 Pontuacao Final: 
 Pontuacao Estudante: 0
-Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': [], 'secundarias': []}]}
+Pontuacao Professor: None
 --------------------------------------------------
-Jogador: joao
-Data: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['amarelo', 'vermelho'], 'secundarias': ['verde', 'laranja']}]}
-Fase 1 Concluida: SIM
-Fase 2 Concluida: SIM
-Tentativas Fase 1 Nivel 1: 4
-Tentativas Fase 1 Nivel 2: 6
+Jogador: daniel
+Data: 2025-01-28 18:33:07
+Fase 1 Concluida: True
+Fase 2 Concluida: True
+Tentativas Fase 1 Nivel 1: 17
+Tentativas Fase 1 Nivel 2: 17
 Tentativas Fase 2 Nivel 1: 0
 Tentativas Fase 2 Nivel 2: 0
 Pontuacao Final: 
 Pontuacao Estudante: 0
-Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['vermelho', 'amarelo', 'azul'], 'secundarias': ['roxo', 'verde', 'laranja']}]}
+Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['vermelho', 'azul', 'amarelo'], 'secundarias': ['roxo', 'verde', 'laranja']}]}
+--------------------------------------------------
+Jogador: lili
+Data: 2025-01-28 18:41:43
+Fase 1 Concluida: True
+Fase 2 Concluida: False
+Tentativas Fase 1 Nivel 1: 16
+Tentativas Fase 1 Nivel 2: 15
+Tentativas Fase 2 Nivel 1: 0
+Tentativas Fase 2 Nivel 2: 0
+Pontuacao Final: 
+Pontuacao Estudante: 0
+Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['amarelo'], 'secundarias': []}]}
+--------------------------------------------------
+Jogador: joao
+Data: 2025-01-28 18:45:26
+Fase 1 Concluida: True
+Fase 2 Concluida: True
+Tentativas Fase 1 Nivel 1: 11
+Tentativas Fase 1 Nivel 2: 14
+Tentativas Fase 2 Nivel 1: 0
+Tentativas Fase 2 Nivel 2: 0
+Pontuacao Final: 
+Pontuacao Estudante: 0
+Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['azul', 'vermelho', 'amarelo'], 'secundarias': ['roxo', 'laranja', 'verde']}]}
+--------------------------------------------------
+Jogador: joaquina
+Data: 2025-01-29 00:04:15
+Fase 1 Concluida: True
+Fase 2 Concluida: True
+Tentativas Fase 1 Nivel 1: 13
+Tentativas Fase 1 Nivel 2: 14
+Tentativas Fase 2 Nivel 1: 0
+Tentativas Fase 2 Nivel 2: 0
+Pontuacao Final: 
+Pontuacao Estudante: 0
+Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': [], 'secundarias': []}]}
 --------------------------------------------------

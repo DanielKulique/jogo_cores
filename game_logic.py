@@ -3,6 +3,7 @@ from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado, Audio
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 from datetime import datetime
 from relatorio import Relatorio
+import subprocess
 
 
 class Jogo:
@@ -696,18 +697,14 @@ class Jogo:
                     x, y = event.pos
                     print(f"Posição do clique: x = {x}, y = {y}")
                     self.verificar_clique(pos)
-                    #PAREI AQUI, ESPERO LEMBRAR AMANHA! ------------------------------------------------<>FUCK YOU,BOLINHAS
-                    # Verificar o hover sobre as bolinhas
+                    
                     for bolinha in self.bolinhas:
                         bolinha.verificar_hover(pos)
 
                     escolhida = self.verificar_clique_bolinha(pos)
                     if escolhida and self.nivel_fase_1 == "primaria": #SE ACERTAR O PRIMEIRO NIVEL DA PRIMEIRA FASE
                         print("acertou a cor primaria")
-                        #remover a bolinha do self bolinhas
-                        #nao concluir o caralho da fase
-                        #fazer um contador cont = 3, quando bater chama fase das cores secundarias
-                        #chamar o contador de erros da class jogador
+                       
                         self.jogador.tentativas_fase1_nivel_1 += 1
 
                         if self.acertou3_primaria == 3:
@@ -1265,7 +1262,7 @@ class Jogo:
                         input_text += event.unicode  # Adiciona o caractere digitado
 
             # Renderize o campo de texto
-            pygame.draw.rect(self.tela, BLACK if input_active else GRAY, (campo_texto_x, campo_texto_y, campo_texto_largura, campo_texto_altura), 2)
+            #pygame.draw.rect(self.tela, BLACK if input_active else GRAY, (campo_texto_x, campo_texto_y, campo_texto_largura, campo_texto_altura), 2)
 
             text_surface = font.render(input_text, True, BLACK)
             text_rect = text_surface.get_rect()
@@ -1435,9 +1432,8 @@ class Jogo:
             return []
 
     def acao_professor(self):
-
-        rela = Relatorio()  # Instancia a classe Jogo
-        rela.acao_professor()  # Executa a função acao_professor
+        subprocess.run(["python", "relatorio.py"])  # Executa e espera `relatorio.py` terminar
+        print("De volta ao game_logic.py!")
 
     def acao_som(self, tipo_audio):
         print("Ação: Som")

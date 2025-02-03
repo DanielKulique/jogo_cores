@@ -2,6 +2,7 @@ import pygame
 import sys
 import json
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
+from game_objects import Botao
 
 class Relatorio:
     def __init__(self):
@@ -32,6 +33,8 @@ class Relatorio:
         # Definir número de resultados por página e o deslocamento inicial
         self.resultados_por_pagina = 3
         self.offset_jogadores = 0
+        self.cor_preta = (0,0,0)
+
 
     def ler_log(self, caminho):
         try:
@@ -163,7 +166,6 @@ class Relatorio:
         running = True
         while running:
             self.tela.blit(self.layout_relatorio_professor, (0, 0))
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -178,8 +180,12 @@ class Relatorio:
                     largura_tela = self.tela.get_width()
                     altura_tela = self.tela.get_height()
 
-                    botao_anterior = pygame.Rect(50, altura_tela - 40, 100, 30)
-                    botao_proximo = pygame.Rect(largura_tela - 150, altura_tela - 40, 100, 30)
+                    pos = pygame.mouse.get_pos()
+                    if bot.foi_clicado(pos):
+                        bot.acao()
+
+                    botao_anterior = pygame.Rect(50, altura_tela - 500, 100, 60)
+                    botao_proximo = pygame.Rect(largura_tela - 150, altura_tela - 500, 100, 60)
 
                     if botao_proximo.collidepoint(mouse_x, mouse_y) and self.offset_jogadores + self.resultados_por_pagina < len(logs):
                         self.offset_jogadores += self.resultados_por_pagina
@@ -192,18 +198,26 @@ class Relatorio:
             # Desenhar botões de navegação
             largura_tela = self.tela.get_width()
             altura_tela = self.tela.get_height()
+            botao_anterior = pygame.Rect(50, altura_tela - 500, 100, 60)
+            botao_proximo = pygame.Rect(largura_tela - 150, altura_tela - 500, 100, 60)
+            bot = Botao(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 135, 125, 125, "Sair", (255, 255, 0), acao=lambda:quit())
+            bot.desenhar(self.tela)
+           # Desenhar o contorno primeiro (ligeiramente maior)
+            pygame.draw.rect(self.tela, self.cor_preta, botao_anterior.inflate(10, 10))  
+            pygame.draw.rect(self.tela, self.cor_preta, botao_proximo.inflate(10, 10))  # Reduzi o tamanho para 10,10
 
-            botao_anterior = pygame.Rect(50, altura_tela - 40, 100, 30)
-            botao_proximo = pygame.Rect(largura_tela - 150, altura_tela - 40, 100, 30)
+            # Desenhar o botão por cima do contorno
+            pygame.draw.rect(self.tela, (255, 255, 203), botao_anterior)  
+            pygame.draw.rect(self.tela, (255, 255, 203), botao_proximo)  
 
-            pygame.draw.rect(self.tela, (0, 0, 255), botao_anterior)
-            pygame.draw.rect(self.tela, (0, 0, 255), botao_proximo)
+            # Renderizar o texto por cima dos botões
+            texto_anterior = self.font.render("Anterior", True, (0, 0, 0))
+            texto_proximo = self.font.render("Próximo", True, (0, 0, 0))
 
-            texto_anterior = self.font.render("Anterior", True, (255, 255, 255))
-            texto_proximo = self.font.render("Próximo", True, (255, 255, 255))
+            self.tela.blit(texto_anterior, (botao_anterior.x + 15, botao_anterior.y + 15))
+            self.tela.blit(texto_proximo, (botao_proximo.x + 15, botao_proximo.y + 15))
 
-            self.tela.blit(texto_anterior, (botao_anterior.x + 10, botao_anterior.y + 5))
-            self.tela.blit(texto_proximo, (botao_proximo.x + 10, botao_proximo.y + 5))
+            
 
             pygame.display.flip()
             self.clock.tick(60)

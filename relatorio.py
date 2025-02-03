@@ -35,7 +35,7 @@ class Relatorio:
 
     def ler_log(self, caminho):
         try:
-            with open(caminho, "r") as arquivo:
+            with open(caminho, "r", encoding="utf-8") as arquivo:
                 linhas = arquivo.readlines()
 
             jogadores = []

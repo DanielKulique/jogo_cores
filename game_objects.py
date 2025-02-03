@@ -33,7 +33,6 @@ class Jogador:
         self.pontuacao_professor = pontuacao_professor
         self.pontuacao_estudante = pontuacao_estudante
         
-        
 
     def completar_fase(self, fase):
         if fase == 1:
@@ -77,7 +76,6 @@ class Jogador:
                 f"Tentativas Fase 1 Nivel 2: {self.tentativas_fase1_nivel_2}\n"
                 f"Tentativas Fase 2 Nivel 1: {self.tentativas_fase2_nivel_1}\n"
                 f"Tentativas Fase 2 Nivel 2: {self.tentativas_fase2_nivel_2}\n"
-                f"Pontuacao Final: \n"
                 f"Pontuacao Estudante: {self.pontuacao_estudante}\n"
                 f"Pontuacao Professor: {self.pontuacao_professor}"
                 )
@@ -159,7 +157,7 @@ class Jogador:
             tentativas_fase1_nivel_2 = int(dados.get("tentativas fase 1 nivel 2", "0"))
             tentativas_fase2_nivel_1 = int(dados.get("tentativas fase 2 nivel 1", "0"))
             tentativas_fase2_nivel_2 = int(dados.get("tentativas fase 2 nivel 2", "0"))
-            pontuacao_estudante = int(dados.get("pontuacao estudante", "0"))
+            pontuacao_estudante = dados.get("pontuacao estudante", "")
 
             # Processar "Pontuacao Professor"
             pontuacao_professor_str = dados.get("pontuacao professor", "{}")
@@ -188,7 +186,7 @@ class Jogador:
 
 # Classe Botao reaproveitada para todas as interações
 class Botao:
-    def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None, mostrar = True):
+    def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None, mostrar = False):
         self.x = x
         self.y = y
         self.largura = largura
@@ -450,7 +448,7 @@ class Quadrado:
 class Audio:
     def __init__(self):
         pygame.mixer.init()  # Inicializa o mixer do pygame
-
+        
         # Dicionário de caminhos dos áudios
         self.caminhos = {
             "cor_primaria": "assets/sons/cor_primaria.mp3",
@@ -464,9 +462,16 @@ class Audio:
             "bolinha_errada": "assets/sons/bolinha_errada.mp3",
             "aprender_primarias": "assets/sons/aprender_primarias.mp3",
             "aprender_secundarias": "assets/sons/aprender_secundarias.mp3",
+            "objeto_errado": "assets/sons/objeto_errado.mp3",
+            "objeto_primario_erro": "assets/sons/objeto_primario_erro.mp3",
+            "digite_nome": "assets/sons/digite_nome.mp3",
+            "configuracao": "assets/sons/configuracao.mp3",
+            "fase1": "assets/sons/fase1.mp3",
+            "fase1e2": "assets/sons/fase1e2.mp3",
         }
+    
 
-    def reproduzir_audio(self, chave, volume=1.0):
+    def reproduzir_audio(self, chave, volume):
         """
         Reproduz um áudio baseado na chave do dicionário de caminhos.
 

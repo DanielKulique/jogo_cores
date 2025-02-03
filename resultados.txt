@@ -82,7 +82,7 @@ Pontuacao Estudante: 0
 Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['azul', 'vermelho', 'amarelo'], 'secundarias': ['roxo', 'laranja', 'verde']}]}
 --------------------------------------------------
 Jogador: joaquina
-Data: 2025-01-29 00:04:15
+Data: 2025-01-29 15:10:22
 Fase 1 Concluida: True
 Fase 2 Concluida: True
 Tentativas Fase 1 Nivel 1: 13
@@ -92,4 +92,32 @@ Tentativas Fase 2 Nivel 2: 0
 Pontuacao Final: 
 Pontuacao Estudante: 0
 Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': [], 'secundarias': []}]}
+--------------------------------------------------
+Jogador: bruno
+Data: 2025-01-30 15:05:59
+Fase 1 Concluida: True
+Fase 2 Concluida: True
+Tentativas Fase 1 Nivel 1: 40
+Tentativas Fase 1 Nivel 2: 43
+Tentativas Fase 2 Nivel 1: 0
+Tentativas Fase 2 Nivel 2: 0
+Pontuacao Final: 
+Pontuacao Estudante: 0
+Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': [], 'secundarias': ['roxo', 'verde']}]}
+--------------------------------------------------
+Jogador: 
+Data: 2025-01-30 15:20:59
+Fase 1 Concluida: False
+Fase 2 Concluida: False
+Tentativas Fase 1 Nivel 1: 0
+Jogador: joaquin
+Data: 2025-02-02 16:29:35
+Fase 1 Concluida: True
+Fase 2 Concluida: True
+Tentativas Fase 1 Nivel 1: 3
+Tentativas Fase 1 Nivel 2: 4
+Tentativas Fase 2 Nivel 1: 0
+Tentativas Fase 2 Nivel 2: 0
+Pontuacao Estudante: ÓTIMO
+Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': [], 'secundarias': ['laranja', 'roxo']}]}
 --------------------------------------------------

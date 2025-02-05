@@ -10,6 +10,7 @@ class Jogo:
     def __init__(self):
         pygame.init()
         #tela
+        pygame.display.set_caption("JOGO DAS CORES")
         self.tela = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.modo_tela_cheia = True  # Estado inicial
         self.menu_atual = None
@@ -106,11 +107,11 @@ class Jogo:
             "sair": Botao(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 135, 125, 125, "Sair", (255, 255, 0), acao=lambda:self.acao_sair())
         }
         self.botoes_menu_fases = {
-            "fase_1": Botao(520, SCREEN_HEIGHT - 400, 320, 55, "Fase 1", (150, 150, 255), acao=lambda:self.primeira_fase()), 
-            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=lambda:self.acao_som(self.tipo_acao_menu)),
-            "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_fase1()),
-            "sair": Botao(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 135, 125, 125, "Sair", (255, 255, 0), acao=lambda:self.menu_nome())          
+            "fase_1": Botao(SCREEN_WIDTH * 0.38, SCREEN_HEIGHT * 0.48, SCREEN_WIDTH * 0.23, SCREEN_HEIGHT * 0.07, "Fase 1", (150, 150, 255), acao=lambda: self.primeira_fase()), 
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.12, SCREEN_HEIGHT * 0.10, "Som", (255, 165, 0), acao=lambda: self.acao_som(self.tipo_acao_menu)),
+            "config": Botao(SCREEN_WIDTH * 0.02, SCREEN_HEIGHT * 0.02, SCREEN_WIDTH * 0.08, SCREEN_HEIGHT * 0.08, "Configuração", (0, 255, 0), acao=lambda: self.acao_configuracao()),
+            "ajuda": Botao(SCREEN_WIDTH * 0.92, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.08, SCREEN_HEIGHT * 0.12, "Ajuda", (255, 255, 0), acao=lambda: self.acao_ajuda_fase1()),
+            "sair": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.85, SCREEN_WIDTH * 0.12, SCREEN_HEIGHT * 0.15, "Sair", (255, 255, 0), acao=lambda: self.menu_nome())          
         }
         self.tipo_acao_fase1 = ""
         self.tipo_acao_fase2 = ""
@@ -484,7 +485,8 @@ class Jogo:
             self.tela.blit(self.layout_menu_fases, (0, 0))
         elif self.fase_2 == "Desbloqueada":
             self.tela.blit(self.layout_menu_fases_2, (0, 0))
-            self.botoes_menu_fases["fase_2"] = Botao(520, SCREEN_HEIGHT - 319, 320, 55, "Fase 2", (255, 150, 150), acao=lambda:self.segunda_fase())
+            self.botoes_menu_fases["fase_2"] = Botao(SCREEN_WIDTH * 0.38, SCREEN_HEIGHT * 0.587, SCREEN_WIDTH * 0.23, SCREEN_HEIGHT * 0.07, "Fase 2", (255, 150, 150), acao=lambda:self.segunda_fase())
+
         # Desenha os botoes do menu
 
         for botao in self.botoes_menu_fases.values():

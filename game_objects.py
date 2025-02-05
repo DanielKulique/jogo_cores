@@ -186,7 +186,7 @@ class Jogador:
 
 # Classe Botao reaproveitada para todas as interações
 class Botao:
-    def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None, mostrar = False):
+    def __init__(self, x, y, largura, altura, texto, cor, acao=None, cor_texto=(0, 0, 0), fonte=None, mostrar = True):
         self.x = x
         self.y = y
         self.largura = largura

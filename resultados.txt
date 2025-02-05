@@ -74,36 +74,8 @@ Data: 2025-01-28 18:45:26
 Fase 1 Concluida: True
 Fase 2 Concluida: True
 Tentativas Fase 1 Nivel 1: 11
-Tentativas Fase 1 Nivel 2: 14
-Tentativas Fase 2 Nivel 1: 0
-Tentativas Fase 2 Nivel 2: 0
-Pontuacao Final: 
-Pontuacao Estudante: 0
-Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': ['azul', 'vermelho', 'amarelo'], 'secundarias': ['roxo', 'laranja', 'verde']}]}
---------------------------------------------------
-Jogador: joaquina
-Data: 2025-01-29 15:10:22
-Fase 1 Concluida: True
-Fase 2 Concluida: True
-Tentativas Fase 1 Nivel 1: 13
-Tentativas Fase 1 Nivel 2: 14
-Tentativas Fase 2 Nivel 1: 0
-Tentativas Fase 2 Nivel 2: 0
-Pontuacao Final: 
-Pontuacao Estudante: 0
-Pontuacao Professor: {'GRANDE DIFICULDADE': [{'primarias': [], 'secundarias': []}], 'LEVE DIFICULDADE': [{'primarias': [], 'secundarias': []}]}
---------------------------------------------------
-Jogador: bruno
-Data: 2025-01-30 15:05:59
-Fase 1 Concluida: True
-Fase 2 Concluida: True
-Tentativas Fase 1 Nivel 1: 40
-Tentativas Fase 1 Nivel 2: 43
-Tentativas Fase 2 Nivel 1: 0
-Tentativas Fase 2 Nivel 2: 0
-Pontuacao Final: 
 Jogador: josé
-Data: 2025-02-03 16:11:30
+Data: 2025-02-04 23:50:46
 Fase 1 Concluida: True
 Fase 2 Concluida: True
 Tentativas Fase 1 Nivel 1: 3

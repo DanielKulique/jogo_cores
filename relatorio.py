@@ -200,7 +200,7 @@ class Relatorio:
             altura_tela = self.tela.get_height()
             botao_anterior = pygame.Rect(50, altura_tela - 500, 100, 60)
             botao_proximo = pygame.Rect(largura_tela - 150, altura_tela - 500, 100, 60)
-            bot = Botao(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 135, 125, 125, "Sair", (255, 255, 0), acao=lambda:quit())
+            bot = Botao(SCREEN_WIDTH * 0.88, SCREEN_HEIGHT * 0.83, SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.16, "Sair", (255, 255, 0), acao=lambda:quit())
             bot.desenhar(self.tela)
            # Desenhar o contorno primeiro (ligeiramente maior)
             pygame.draw.rect(self.tela, self.cor_preta, botao_anterior.inflate(10, 10))  

@@ -93,39 +93,39 @@ class Jogo:
             
         # Instanciando os botões
         self.botoes = {
-            "professor": Botao(50, SCREEN_HEIGHT - 200, 270, 140, "Professor", (255, 0, 0), acao=lambda:self.acao_professor()),
-            "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
-            "nome": Botao((SCREEN_WIDTH - 750) // 2, (SCREEN_HEIGHT - 120) // 2 + 65, 750, 120, "Nome", (0, 0, 255), acao=lambda:self.acao_nome_jogador()),
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_jogo()),
-            "som": Botao(SCREEN_WIDTH - 190, 20, 95, 80, "Som", (255, 165, 0), acao=lambda:self.acao_som(self.tipo_acao_menu)),
+            "professor": Botao(SCREEN_WIDTH * 0.04, SCREEN_HEIGHT * 0.74, SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * 0.17, "Professor", (255, 0, 0), acao=lambda: self.acao_professor()),
+            "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda: self.acao_configuracao()),
+            "nome": Botao((SCREEN_WIDTH - (SCREEN_WIDTH * 0.5)) // 2, (SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.1)) // 2 + SCREEN_HEIGHT * 0.05, SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.15, "Nome", (0, 0, 255), acao=lambda: self.acao_nome_jogador()),
+            "ajuda": Botao(SCREEN_WIDTH * 0.94, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.1, "Ajuda", (255, 255, 0), acao=lambda: self.acao_ajuda_jogo()),
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao=lambda: self.acao_som(self.tipo_acao_menu)),
         }
         self.botoes_config = {
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_jogo()),
-            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao=lambda:self.acao_som(self.tipo_acao_menu)),
+            "ajuda": Botao(SCREEN_WIDTH * 0.94, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.1, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_jogo()),
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao=lambda:self.acao_som(self.tipo_acao_menu)),
             "audio": Botao(480, SCREEN_HEIGHT - 470, 320, 55, "Audio", (150, 150, 255), acao=self.verifica_volume),
             "relatorio": Botao(480, SCREEN_HEIGHT - 390, 320, 55, "relatorio", (150, 150, 255), acao=lambda:self.relatorio_estudante(self.fase)),
-            "sair": Botao(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 135, 125, 125, "Sair", (255, 255, 0), acao=lambda:self.acao_sair())
+            "sair": Botao(SCREEN_WIDTH * 0.88, SCREEN_HEIGHT * 0.83, SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.16, "Sair", (255, 255, 0), acao=lambda:self.acao_sair())
         }
         self.botoes_menu_fases = {
             "fase_1": Botao(SCREEN_WIDTH * 0.38, SCREEN_HEIGHT * 0.48, SCREEN_WIDTH * 0.23, SCREEN_HEIGHT * 0.07, "Fase 1", (150, 150, 255), acao=lambda: self.primeira_fase()), 
-            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.12, SCREEN_HEIGHT * 0.10, "Som", (255, 165, 0), acao=lambda: self.acao_som(self.tipo_acao_menu)),
-            "config": Botao(SCREEN_WIDTH * 0.02, SCREEN_HEIGHT * 0.02, SCREEN_WIDTH * 0.08, SCREEN_HEIGHT * 0.08, "Configuração", (0, 255, 0), acao=lambda: self.acao_configuracao()),
-            "ajuda": Botao(SCREEN_WIDTH * 0.92, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.08, SCREEN_HEIGHT * 0.12, "Ajuda", (255, 255, 0), acao=lambda: self.acao_ajuda_fase1()),
-            "sair": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.85, SCREEN_WIDTH * 0.12, SCREEN_HEIGHT * 0.15, "Sair", (255, 255, 0), acao=lambda: self.menu_nome())          
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao=lambda: self.acao_som(self.tipo_acao_menu)),
+            "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda: self.acao_configuracao()),
+            "ajuda": Botao(SCREEN_WIDTH * 0.94, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.1, "Ajuda", (255, 255, 0), acao=lambda: self.acao_ajuda_fase1()),
+            "sair": Botao(SCREEN_WIDTH * 0.88, SCREEN_HEIGHT * 0.83, SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.16, "Sair", (255, 255, 0), acao=lambda: self.menu_nome())          
         }
         self.tipo_acao_fase1 = ""
         self.tipo_acao_fase2 = ""
         self.botoes_fase_1 = {
             #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
-            "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
+            "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
             "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=None),
-            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase1())),
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase1())),
         }
         self.botoes_fase_2 = {
             #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
-            "config": Botao(18, 18, 75, 75, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
+            "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
             "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=None),
-            "som": Botao(SCREEN_WIDTH - 180, 20, 95, 80, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase2)),
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase2)),
         }
 
         
@@ -1199,10 +1199,11 @@ class Jogo:
         font = pygame.font.Font(None, 50)  # Fonte para o texto
 
         # Definindo as dimensões e a posição do retângulo do campo de texto
-        campo_texto_x = (SCREEN_WIDTH - 750) // 2
-        campo_texto_y = (SCREEN_HEIGHT - 120) // 2 + 65
-        campo_texto_largura = 750
-        campo_texto_altura = 120
+        campo_texto_largura = min(750, SCREEN_WIDTH * 0.8)  # No máximo 750px, mas ajustável
+        campo_texto_altura = min(120, SCREEN_HEIGHT * 0.1)  # No máximo 120px, mas ajustável
+
+        campo_texto_x = (SCREEN_WIDTH - campo_texto_largura) // 2
+        campo_texto_y = (SCREEN_HEIGHT - campo_texto_altura) // 2 + 89
 
         while self.running:
             self.desenhar_menu()

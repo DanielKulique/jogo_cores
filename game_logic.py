@@ -1,9 +1,12 @@
 import pygame, random, sys, time, os
-from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado, Audio
+from game_objects import Botao, BotaoEspecial, Bolinha, Jogador, Quadrado, Audio, BotaoVoltar
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 from datetime import datetime
 from relatorio import Relatorio
 import subprocess
+import moviepy.editor as mp
+import numpy as np
+import threading
 
 
 class Jogo:
@@ -61,21 +64,10 @@ class Jogo:
         self.acertos_nivel2 = 0
 
         self.cores_erradas = { 
-            "turquesa": (64, 224, 208),
-            "magenta": (255, 0, 255),
-            "rosa": (255, 192, 203),
             "marrom": (139, 69, 19),
             "bege": (200, 200, 160),
             "cinza": (128, 128, 128),
-            "prata": (128, 128, 128),
             "ciano_claro": (100, 180, 180),
-            "verde_agua": (32, 178, 170),
-            "salmao": (250, 128, 114),
-            "vinho": (128, 0, 32),
-            "lilas": (200, 162, 200),
-            "oliva": (107, 142, 35),
-            "ferrugem": (183, 65, 14),
-            "coral": (255, 127, 80),
         }
         
         self.bolinhas = []
@@ -102,41 +94,42 @@ class Jogo:
         self.botoes_config = {
             "ajuda": Botao(SCREEN_WIDTH * 0.94, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.1, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_jogo()),
             "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao=lambda:self.acao_som(self.tipo_acao_menu)),
-            "audio": Botao(480, SCREEN_HEIGHT - 470, 320, 55, "Audio", (150, 150, 255), acao=self.verifica_volume),
-            "relatorio": Botao(480, SCREEN_HEIGHT - 390, 320, 55, "relatorio", (150, 150, 255), acao=lambda:self.relatorio_estudante(self.fase)),
+            "audio": Botao(SCREEN_WIDTH * 0.36, SCREEN_HEIGHT * 0.387, SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.074, "Audio", (150, 150, 255), acao=self.verifica_volume),
+            "relatorio": Botao(SCREEN_WIDTH * 0.36, SCREEN_HEIGHT * 0.49, SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.074, "relatorio", (150, 150, 255), acao=lambda:self.relatorio_estudante(self.fase)),
             "sair": Botao(SCREEN_WIDTH * 0.88, SCREEN_HEIGHT * 0.83, SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.16, "Sair", (255, 255, 0), acao=lambda:self.acao_sair())
         }
         self.botoes_menu_fases = {
             "fase_1": Botao(SCREEN_WIDTH * 0.38, SCREEN_HEIGHT * 0.48, SCREEN_WIDTH * 0.23, SCREEN_HEIGHT * 0.07, "Fase 1", (150, 150, 255), acao=lambda: self.primeira_fase()), 
             "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao=lambda: self.acao_som(self.tipo_acao_menu)),
             "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda: self.acao_configuracao()),
-            "ajuda": Botao(SCREEN_WIDTH * 0.94, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.1, "Ajuda", (255, 255, 0), acao=lambda: self.acao_ajuda_fase1()),
-            "sair": Botao(SCREEN_WIDTH * 0.88, SCREEN_HEIGHT * 0.83, SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.16, "Sair", (255, 255, 0), acao=lambda: self.menu_nome())          
+            "ajuda": Botao(SCREEN_WIDTH * 0.94, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.1, "Ajuda", (255, 255, 0), acao=lambda: self.acao_ajuda_menu_fases()),
+            #"sair": Botao(SCREEN_WIDTH * 0.88, SCREEN_HEIGHT * 0.83, SCREEN_WIDTH * 0.11, SCREEN_HEIGHT * 0.16, "Sair", (255, 255, 0), acao=lambda: self.menu_nome())          
         }
         self.tipo_acao_fase1 = ""
         self.tipo_acao_fase2 = ""
         self.botoes_fase_1 = {
             #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
             "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=None),
-            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase1())),
+            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_fase1()),
+            "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase1)),
         }
         self.botoes_fase_2 = {
             #"menu": Botao((SCREEN_WIDTH - 750) // 2 + 260, (SCREEN_HEIGHT - 120) // 2 - 70, 210, 95, "Menu", (100, 255, 100), acao=self.menu_nome),
             "config": Botao(SCREEN_WIDTH * 0.013, SCREEN_HEIGHT * 0.027, SCREEN_WIDTH * 0.06, SCREEN_HEIGHT * 0.1, "Configuração", (0, 255, 0), acao=lambda:self.acao_configuracao()),
-            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=None),
+            "ajuda": Botao(SCREEN_WIDTH - 80, 20, 60, 80, "Ajuda", (255, 255, 0), acao=lambda:self.acao_ajuda_fase2()),
             "som": Botao(SCREEN_WIDTH * 0.85, SCREEN_HEIGHT * 0.03, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.1, "Som", (255, 165, 0), acao= lambda: self.acao_som(self.tipo_acao_fase2)),
         }
 
         
         
-        '''self.quadrados_primarios = {
-            "bola_azul": Quadrado(840, 150, "assets/objetos_primarios/bola_azul.png"),
-            "osso_amarelo": Quadrado(1080, 170, "assets/objetos_primarios/osso_amarelo.png"),
-            "osso_preto": Quadrado(840, 310, "assets/objetos_primarios/osso_preto.png"),
-            "osso_vermelho": Quadrado(1080, 370, "assets/objetos_primarios/osso_vermelho.png"),
-            "urso_marrom": Quadrado(890, 440, "assets/objetos_primarios/urso_marrom.png"),
-        }'''
+        self.caminho_videos = {
+            "tutorial": "assets/videos/Funcionalidades.mp4",
+            "como_jogar_1": "assets/videos/Como_jogar_1.mp4",
+            "como_jogar_2": "assets/videos/Como_jogar_2.mp4",
+            "cor_primaria": "assets/videos/Cor_primária.mp4",
+            "cor_secundaria": "assets/videos/Cores_secundárias.mp4",
+        }
+
         self.quadrados_primarios = {}
         self.quadrados_secundarios = {}
         self.quadrados_caixa = {}
@@ -253,7 +246,57 @@ class Jogo:
                     return nome
         return None
     #FIM ENCAPSULAMENTO
-    
+
+    def rodar_video(self, nome_video):
+        """Reproduz um vídeo no Pygame com áudio sincronizado."""
+        if nome_video not in self.caminho_videos:
+            print(f"Vídeo '{nome_video}' não encontrado!")
+            return
+
+        caminho = self.caminho_videos[nome_video]
+        
+        try:
+            clip = mp.VideoFileClip(caminho)  # Carrega o vídeo
+        except Exception as e:
+            print(f"Erro ao carregar o vídeo: {e}")
+            return
+
+        # Obtém a resolução original do vídeo
+        video_largura, video_altura = clip.size
+        screen_largura, screen_altura = SCREEN_WIDTH, SCREEN_HEIGHT
+
+        # Calcula fator de escala para manter proporção
+        escala = min(screen_largura / video_largura, screen_altura / video_altura)
+        novo_largura = int(video_largura * escala)
+        novo_altura = int(video_altura * escala)
+
+        self.tela = pygame.display.set_mode((screen_largura, screen_altura))  # Mantém tela cheia
+
+        clock = pygame.time.Clock()
+
+        # Iniciar áudio em uma thread separada
+        if clip.audio:
+            threading.Thread(target=clip.audio.preview).start()  # Reproduz áudio em paralelo
+
+        for frame in clip.iter_frames(fps=30, dtype="uint8"):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
+                    clip.close()
+                    return
+
+            surface = pygame.surfarray.make_surface(frame.swapaxes(0, 1))  # Converte frame para pygame
+            surface = pygame.transform.smoothscale(surface, (novo_largura, novo_altura))  # Redimensiona mantendo proporção
+
+            # Centraliza o vídeo na tela
+            x = (screen_largura - novo_largura) // 2
+            y = (screen_altura - novo_altura) // 2
+            self.tela.fill((0, 0, 0))  # Fundo preto para evitar bordas brancas
+            self.tela.blit(surface, (x, y))
+
+            pygame.display.update()
+            clock.tick(30)
+
+
     def verifica_volume(self):
         print(f"Antes: {self.volume}")  # Depuração
 
@@ -395,18 +438,18 @@ class Jogo:
         ]
         '''
         coordenadas_disponiveis = [
-            (900, 170),
-            (1140, 190),
-            (900, 330),
-            (1140, 400),
-            (950, 470),
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.2),
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.4),
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.6),
+            (SCREEN_WIDTH * 0.83, SCREEN_HEIGHT * 0.29),
+            (SCREEN_WIDTH * 0.83, SCREEN_HEIGHT * 0.49),
         ]
         coordenadas_disponiveis_fase2 = [
-            (870, 170),
-            (1110, 190),
-            (860, 330),
-            (1100, 400),
-            (910, 470),
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.2),
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.4),
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.6),
+            (SCREEN_WIDTH * 0.83, SCREEN_HEIGHT * 0.29),
+            (SCREEN_WIDTH * 0.83, SCREEN_HEIGHT * 0.49),
         ]
 
         if self.nivel_fase_2 == "primaria":
@@ -447,23 +490,23 @@ class Jogo:
 
         if self.nivel_fase_2 == "primaria":
             if objeto == "bola_azul":
-                self.quadrados_caixa["bola_azul"] = Quadrado(510, 430, f"assets/objetos_primarios/bola_azul.png", 120)
+                self.quadrados_caixa["bola_azul"] = Quadrado(SCREEN_WIDTH * 0.44, SCREEN_HEIGHT * 0.6, f"assets/objetos_primarios/bola_azul.png", 120)
                 self.remover_quadrado("bola_azul")
             elif objeto == "osso_amarelo":
-                self.quadrados_caixa["osso_amarelo"] = Quadrado(460, 450, f"assets/objetos_primarios/osso_amarelo.png", 120)
+                self.quadrados_caixa["osso_amarelo"] = Quadrado(SCREEN_WIDTH * 0.43, SCREEN_HEIGHT * 0.6, f"assets/objetos_primarios/osso_amarelo.png", 120)
                 self.remover_quadrado("osso_amarelo")
             elif objeto == "osso_vermelho":
-                self.quadrados_caixa["osso_vermelho"] = Quadrado(583, 470, f"assets/objetos_primarios/osso_vermelho.png", 120)
+                self.quadrados_caixa["osso_vermelho"] = Quadrado(SCREEN_WIDTH * 0.46, SCREEN_HEIGHT * 0.63, f"assets/objetos_primarios/osso_vermelho.png", 120)
                 self.remover_quadrado("osso_vermelho") 
         else:
             if objeto == "bola_verde":
-                self.quadrados_caixa["bola_verde"] = Quadrado(510, 430, f"assets/objetos_secundarios/bola_verde.png", 150)
+                self.quadrados_caixa["bola_verde"] = Quadrado(SCREEN_WIDTH * 0.43, SCREEN_HEIGHT * 0.6, f"assets/objetos_secundarios/bola_verde.png", 150)
                 self.remover_quadrado("bola_verde")
             elif objeto == "laco_laranja":
-                self.quadrados_caixa["laco_laranja"] = Quadrado(460, 450, f"assets/objetos_secundarios/laco_laranja.png", 150)
+                self.quadrados_caixa["laco_laranja"] = Quadrado(SCREEN_WIDTH * 0.41, SCREEN_HEIGHT * 0.6, f"assets/objetos_secundarios/laco_laranja.png", 150)
                 self.remover_quadrado("laco_laranja")
             elif objeto == "estrela_roxa":
-                self.quadrados_caixa["estrela_roxa"] = Quadrado(500, 470, f"assets/objetos_secundarios/estrela_roxa.png", 150)
+                self.quadrados_caixa["estrela_roxa"] = Quadrado(SCREEN_WIDTH * 0.45, SCREEN_HEIGHT * 0.63, f"assets/objetos_secundarios/estrela_roxa.png", 150)
                 self.remover_quadrado("estrela_roxa") 
 
 
@@ -517,10 +560,10 @@ class Jogo:
         ]'''
 
         coordenadas = [
-            (870, 236),  # Primeira bolinha
-            (1162, 236),  # Segunda bolinha
-            (870, 484),  # Terceira bolinha
-            (1162, 484),  # Quarta bolinha
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.33),  # Primeira bolinha
+            (SCREEN_WIDTH * 0.83, SCREEN_HEIGHT * 0.33),  # Segunda bolinha
+            (SCREEN_WIDTH * 0.66, SCREEN_HEIGHT * 0.64),  # Terceira bolinha
+            (SCREEN_WIDTH * 0.83, SCREEN_HEIGHT * 0.64),  # Quarta bolinha
         ]
         
         # Copia as cores disponíveis
@@ -643,7 +686,7 @@ class Jogo:
             elif self.jogador.tentativas_fase1_nivel_1 == 4:
                 self.jogador.pontuacao_estudante = "ÓTIMO"
             elif self.jogador.tentativas_fase1_nivel_1 == 5:
-                self.jogador.pontuacao_estudante = "MUITO BOM"
+                self.jogador.pontuacao_estudante = "SHOW"
             else:
                 self.jogador.pontuacao_estudante = "BOM"
         elif fase == 1 and nivel == 2:
@@ -652,7 +695,7 @@ class Jogo:
             elif self.jogador.tentativas_fase1_nivel_2 == 4:
                 self.jogador.pontuacao_estudante = "ÓTIMO"
             elif self.jogador.tentativas_fase1_nivel_2 == 5:
-                self.jogador.pontuacao_estudante = "MUITO BOM"
+                self.jogador.pontuacao_estudante = "SHOW"
             else:
                 self.jogador.pontuacao_estudante = "BOM"
         elif fase == 2 and nivel == 1:
@@ -661,7 +704,7 @@ class Jogo:
             elif self.jogador.tentativas_fase2_nivel_1 == 4:
                 self.jogador.pontuacao_estudante = "ÓTIMO"
             elif self.jogador.tentativas_fase2_nivel_1 == 5:
-                self.jogador.pontuacao_estudante = "MUITO BOM"
+                self.jogador.pontuacao_estudante = "SHOW"
             else:
                 self.jogador.pontuacao_estudante = "BOM"
         elif fase == 2 and nivel == 2:
@@ -670,12 +713,29 @@ class Jogo:
             elif self.jogador.tentativas_fase2_nivel_2 == 4:
                 self.jogador.pontuacao_estudante = "ÓTIMO"
             elif self.jogador.tentativas_fase2_nivel_2 == 5:
-                self.jogador.pontuacao_estudante = "MUITO BOM"
+                self.jogador.pontuacao_estudante = "SHOW"
             else:
                 self.jogador.pontuacao_estudante = "BOM"
         else:
             print("Erro: fase/nivel desconhecido")
 
+    def nivel_video_fase_1(self):
+        if self.nivel_fase_1 == "primaria":
+            return "cor_primaria"
+        elif self.nivel_fase_1 == "secundaria":
+            return "cor_secundaria"
+        else:
+            print("erro ao identificar nivel da fase 1")
+            return None
+    
+    def nivel_video_fase_2(self):
+        if self.nivel_fase_2 == "primaria":
+            return "cor_primaria"
+        elif self.nivel_fase_2 == "secundaria":
+            return "cor_secundaria"
+        else:
+            print("erro ao identificar nivel da fase 1")
+            return None
 
     def primeira_fase(self):
         self.menu_atual = "primeira_fase"
@@ -683,8 +743,24 @@ class Jogo:
         self.jogador.tentativas_fase1_nivel_1 = 0
         self.jogador.tentativas_fase1_nivel_2 = 0
 
+        botao_menu = BotaoEspecial(
+            x=SCREEN_WIDTH * 0.82,  # Exemplo de novo valor para 'x'
+            y=SCREEN_HEIGHT * 0.844,  # Exemplo de novo valor para 'y'
+            largura=SCREEN_HEIGHT * 0.26,
+            altura=SCREEN_HEIGHT * 0.11,
+            texto="MENU",
+            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+            cor_texto=(0, 0, 0),
+            fonte=pygame.font.SysFont("Baskerville", 40), 
+            acao=None,
+        )
+        botao_video = Botao(SCREEN_WIDTH * 0.75, SCREEN_HEIGHT * 0.005, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.15, "video", (255, 255, 0), acao=lambda:self.rodar_video(self.nivel_video_fase_1()))
+
         print("Iniciando Fase 1")
         while self.running:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -694,14 +770,24 @@ class Jogo:
                     pos = pygame.mouse.get_pos()
                     for bolinha in self.bolinhas or self.cores_erradas:
                         bolinha.verificar_hover(pos)
+
+                    
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     x, y = event.pos
                     print(f"Posição do clique: x = {x}, y = {y}")
                     self.verificar_clique(pos)
                     
+                    if botao_menu.foi_clicado(pos):
+                        print("Botão menu foi clicado")
+                        self.menu_fases()  # Chama a ação associada ao botão
+
                     for bolinha in self.bolinhas:
                         bolinha.verificar_hover(pos)
+                    
+                    if botao_video.foi_clicado(pos):
+                        botao_video.acao()
+                    
 
                     escolhida = self.verificar_clique_bolinha(pos)
                     if escolhida and self.nivel_fase_1 == "primaria": #SE ACERTAR O PRIMEIRO NIVEL DA PRIMEIRA FASE
@@ -715,6 +801,7 @@ class Jogo:
                             self.erro = False
 
                             self.tela.blit(self.layout_acertou_nivel_1, (0, 0))
+                            botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                             self.acao_som("proximo_nivel") 
                             pygame.display.flip()
 
@@ -744,13 +831,14 @@ class Jogo:
                             self.verificar_dificuldade() 
 
                             self.tela.blit(self.layout_acertou_nivel_2, (0, 0))
+                            botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                             pygame.display.flip()
                             #delay
                             self.acao_som("proxima_fase")
                             tempo_inicio = pygame.time.get_ticks()
                             self.delay(tempo_inicio, 4000)
                             self.verifica_pontuacao_jogador(1, 2)
-                            self.fase = 2
+                            self.fase = 1
                             self.relatorio_estudante(self.fase)
                             self.desenhar_primeira_fase()
                             pygame.display.flip()
@@ -774,11 +862,13 @@ class Jogo:
 
                         self.tela.blit(self.layout_errou, (0, 0))
                         self.desenha_bolinhas()
+                        botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                         pygame.display.flip()
                         self.clock.tick(60)
                         tempo_inicio = pygame.time.get_ticks()
                         self.delay(tempo_inicio, 4000)
 
+                        self.rodar_video("cor_primaria")
 
                         for bolinha in self.bolinhas:
                             nome_cor = self.obter_nome_cor(bolinha.cor)  # Obtem o nome da cor baseado no RGB
@@ -798,10 +888,12 @@ class Jogo:
 
                         self.tela.blit(self.layout_errou, (0, 0))
                         self.desenha_bolinhas()
+                        botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                         pygame.display.flip()
                         self.clock.tick(60)
                         tempo_inicio = pygame.time.get_ticks()
                         self.delay(tempo_inicio, 4000)
+                        self.rodar_video("cor_secundaria")
 
                         print("errou cor secundaria! tente novamente")
                         for bolinha in self.bolinhas:
@@ -811,7 +903,10 @@ class Jogo:
 
                         print("Dificuldade até agora:", self.dificuldade_identificar)
 
+            
             self.desenhar_primeira_fase()
+            botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
+            botao_video.desenhar(self.tela)
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -828,12 +923,26 @@ class Jogo:
         self.jogador.tentativas_fase2_nivel_1 = 0
         self.jogador.tentativas_fase2_nivel_2 = 0
 
-
+        botao_menu = BotaoEspecial(
+            x=SCREEN_WIDTH * 0.82,  # Exemplo de novo valor para 'x'
+            y=SCREEN_HEIGHT * 0.844,  # Exemplo de novo valor para 'y'
+            largura=SCREEN_HEIGHT * 0.26,
+            altura=SCREEN_HEIGHT * 0.11,
+            texto="MENU",
+            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+            cor_texto=(0, 0, 0),
+            fonte=pygame.font.SysFont("Baskerville", 40), 
+            acao=None,
+        )
+        botao_video = Botao(SCREEN_WIDTH * 0.75, SCREEN_HEIGHT * 0.005, SCREEN_WIDTH * 0.09, SCREEN_HEIGHT * 0.15, "video", (255, 255, 0), acao=lambda:self.rodar_video(self.nivel_video_fase_2()))
         print("Iniciando Fase 2")
 
         # Loop principal
         running = True
         while running:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -854,6 +963,12 @@ class Jogo:
                     self.verificar_clique(pos)
                     print(f"Posição do clique: {pos}")
 
+                    if botao_menu.foi_clicado(pos):
+                        print("Botão menu foi clicado")
+                        self.menu_fases()  # Chama a ação associada ao botão
+                    if botao_video.foi_clicado(pos):
+                        botao_video.acao()
+
                     if self.nivel_fase_2 == 'primaria':
                         quadrados_para_remover = []
                         for nome, quadrado in self.quadrados_primarios.items():
@@ -862,10 +977,11 @@ class Jogo:
                                 if nome in ["osso_preto", "urso_marrom"]:
                                     self.quadrados_errados[nome] = True 
                                     print("ERROU!")
-
+                                    self.jogador.tentativas_fase2_nivel_1 += 1
 
                                     self.acao_som("objeto_primario_erro")
                                     self.tela.blit(self.layout_objeto_errado_primario, (0, 0))
+                                    botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                                     #desenha quadrados
                                     self.desenha_caixa()
                                     self.desenhar_quadrados()
@@ -874,7 +990,7 @@ class Jogo:
                                     tempo_inicio = pygame.time.get_ticks()
                                     self.delay(tempo_inicio, 6000)
 
-
+                                    self.rodar_video("cor_primaria")
 
                                     for restante in self.quadrados_primarios.keys():
                                         print(f"falta {restante}")
@@ -883,6 +999,7 @@ class Jogo:
                                 else:  # Acerto
                                     quadrados_para_remover.append(nome)
                                     self.acertos_nivel1 += 1
+                                    self.jogador.tentativas_fase2_nivel_1 += 1
                                     
                         
                         for nome in quadrados_para_remover:
@@ -897,9 +1014,11 @@ class Jogo:
                                 if nome in ["flor_rosa", "osso_azul"]:
                                     print("ERROU!")
                                     self.quadrados_errados[nome] = True 
+                                    self.jogador.tentativas_fase2_nivel_2 += 1
 
                                     self.acao_som("objeto_errado")
                                     self.tela.blit(self.layout_objeto_errado_secundaria, (0, 0))
+                                    botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                                     #desenha quadrados
                                     self.desenha_caixa()
                                     self.desenhar_quadrados()
@@ -908,12 +1027,15 @@ class Jogo:
                                     tempo_inicio = pygame.time.get_ticks()
                                     self.delay(tempo_inicio, 6000)
 
+                                    self.rodar_video("cor_secundaria")
+
                                     for restante in self.quadrados_secundarios.keys():
                                         print(f"falta {restante}")
                                         self.adicionar_dificuldade_2("cores_secundarias", restante)
                                 else:  # Acerto
                                     quadrados_para_remover.append(nome)
                                     self.acertos_nivel2 += 1
+                                    self.jogador.tentativas_fase2_nivel_2 += 1
                         
                         for nome in quadrados_para_remover:
                             self.remover_quadrado(nome)
@@ -921,6 +1043,8 @@ class Jogo:
 
             # Desenha o layout da fase com base no nível atual
             self.desenhar_segunda_fase()
+            botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
+            botao_video.desenhar(self.tela)
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -934,11 +1058,17 @@ class Jogo:
                 self.tela.blit(self.layout_primaria_organizada, (0, 0))
                 self.desenha_caixa()
                 self.desenhar_quadrados()
+                botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                 pygame.display.flip()
                 self.clock.tick(60)
 
                 self.acao_som("obrigado_caixa_primaria")
                 self.delay(tempo_inicio, 5500)
+
+                self.verifica_pontuacao_jogador(2, 1)
+                self.fase = 2
+                self.relatorio_estudante(self.fase)
+
                 self.tipo_acao_fase2 = "caixa_secundaria"
                 self.nivel_fase_2 = "secundaria"
                 self.acao_som("caixa_secundaria")
@@ -957,12 +1087,18 @@ class Jogo:
                 self.tela.blit(self.layout_caixa_organizada, (0, 0))
                 self.desenha_caixa()
                 self.desenhar_quadrados()
+                botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                 pygame.display.flip()
                 self.clock.tick(60)
                 self.acao_som("caixas_organizadas")
 
                 tempo_inicio = pygame.time.get_ticks()
                 self.delay(tempo_inicio, 4500)
+
+                self.verifica_pontuacao_jogador(2, 2)
+                self.fase = 2
+                self.relatorio_estudante(self.fase)
+
                 self.menu_fases()  # Retorna ao menu de fases
                 running = False
 
@@ -1023,7 +1159,7 @@ class Jogo:
         """
         self.menu_atual = "menu_principal"
         self.tipo_acao_menu = "digite_nome"
-
+        self.rodar_video("tutorial")
         # Verifica se há um jogador registrado no log
         ultimo_jogador = Jogador.verificar_ultimo_jogador("resultados.txt")
         print(ultimo_jogador)
@@ -1048,10 +1184,10 @@ class Jogo:
         botao_voltar = None
         if self.jogador:
             botao_voltar = BotaoEspecial(
-                x=600,
-                y=SCREEN_HEIGHT - 200,
-                largura=500,
-                altura=60,
+                x=SCREEN_HEIGHT * 0.8,
+                y=SCREEN_HEIGHT * 0.8,
+                largura=SCREEN_WIDTH * 0.3,
+                altura=SCREEN_HEIGHT * 0.07,
                 texto=f"{((self.jogador.nome))}",
                 cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
                 cor_hover=(255, 220, 100),  # Cor hover (#F78900)
@@ -1061,6 +1197,19 @@ class Jogo:
                 acao=self.menu_fases,  # Define a ação ao clicar no botão
             )
 
+        botao_menu = BotaoEspecial(
+            x=SCREEN_WIDTH * 0.409,  # Exemplo de novo valor para 'x'
+            y=SCREEN_HEIGHT * 0.33,  # Exemplo de novo valor para 'y'
+            largura=SCREEN_HEIGHT * 0.26,
+            altura=SCREEN_HEIGHT * 0.11,
+            texto="MENU",
+            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+            cor_texto=(0, 0, 0),
+            fonte=pygame.font.SysFont("Baskerville", 40), 
+            acao=None,
+        )
 
         while self.running:
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -1094,7 +1243,7 @@ class Jogo:
             if botao_voltar:
                 botao_voltar.desenhar(self.tela, ativo=is_hovered)
 
-
+            botao_menu.desenhar(self.tela)
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -1112,28 +1261,17 @@ class Jogo:
 
         print("Ação: Configuração")
         if self.menu_atual == "menu_principal":
-            acao_especial = self.menu_nome
+            acao_especial = lambda:self.menu_nome()
         elif self.menu_atual == "menu_fases":
-            acao_especial = self.menu_fases
+            acao_especial = lambda:self.menu_fases()
         elif self.menu_atual == "primeira_fase":
-            acao_especial = self.primeira_fase
+            acao_especial = lambda:self.primeira_fase()
         elif self.menu_atual == "segunda_fase":
-            acao_especial = self.segunda_fase
+            acao_especial = lambda:self.segunda_fase()
 
         # Criar o botão com novas coordenadas
-        botao_menu = BotaoEspecial(
-            x=(SCREEN_WIDTH - 755) // 2 + 245,  # Exemplo de novo valor para 'x'
-            y=(SCREEN_HEIGHT - 140) // 2 - 160,  # Exemplo de novo valor para 'y'
-            largura=210,
-            altura=90,
-            texto="MENU",
-            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
-            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
-            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
-            cor_texto=(0, 0, 0),
-            fonte=pygame.font.SysFont("Baskerville", 40), 
-            acao=acao_especial,
-        )
+
+        botao_voltar = BotaoVoltar(SCREEN_WIDTH * 0.05, SCREEN_HEIGHT * 0.9, 50, acao_especial)
 
         self.menu_atual = "menu_config"
         while self.running:
@@ -1148,13 +1286,9 @@ class Jogo:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
                     
-                    self.verificar_clique(pos)
-
-                    # Verifica o clique no botão especial menu
-                    if botao_menu.foi_clicado(pos):
-                        print("Botão menu foi clicado")
-                        botao_menu.acao()  # Chama a ação associada ao botão
-
+                    self.verificar_clique(pos)                              
+                    if botao_voltar.foi_clicado(pos):
+                        acao_especial
                     # Verifica se o clique foi no controle de volume
                     if linha_x1 <= pos[0] <= linha_x2 and linha_y - raio <= pos[1] <= linha_y + raio:
                         self.volume = (pos[0] - linha_x1) / (linha_x2 - linha_x1)
@@ -1170,7 +1304,6 @@ class Jogo:
             self.desenhar_configuracao()
 
             # Desenha o botão especial (com efeito hover)
-            botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
 
             # Desenha a faixa de fundo clara (a faixa que vai preencher toda a linha)
             pygame.draw.rect(self.tela, (100, 100, 100), (linha_x1, linha_y - 5, linha_x2 - linha_x1, 10))  # Faixa clara
@@ -1180,7 +1313,7 @@ class Jogo:
 
             # Desenha a bolinha do volume
             pygame.draw.circle(self.tela, (255, 0, 0), (linha_x1 + (linha_x2 - linha_x1) * self.volume, linha_y), raio)
-
+            botao_voltar.desenhar(self.tela)
             # Atualiza a tela
             pygame.display.flip()
             self.clock.tick(60)
@@ -1205,6 +1338,19 @@ class Jogo:
         campo_texto_x = (SCREEN_WIDTH - campo_texto_largura) // 2
         campo_texto_y = (SCREEN_HEIGHT - campo_texto_altura) // 2 + 89
 
+        botao_menu = BotaoEspecial(
+            x=SCREEN_WIDTH * 0.409,  # Exemplo de novo valor para 'x'
+            y=SCREEN_HEIGHT * 0.33,  # Exemplo de novo valor para 'y'
+            largura=SCREEN_HEIGHT * 0.26,
+            altura=SCREEN_HEIGHT * 0.11,
+            texto="MENU",
+            cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+            cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+            cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+            cor_texto=(0, 0, 0),
+            fonte=pygame.font.SysFont("Baskerville", 40), 
+            acao=None,
+        )
         while self.running:
             self.desenhar_menu()
 
@@ -1271,7 +1417,7 @@ class Jogo:
             text_rect = text_surface.get_rect()
             text_rect.midleft = (campo_texto_x + 10, campo_texto_y + campo_texto_altura // 2)
             self.tela.blit(text_surface, text_rect)  # Ajuste a posição do texto dentro do campo
-
+            botao_menu.desenhar(self.tela)
             # Atualize a tela
             pygame.display.flip()
             self.clock.tick(60)
@@ -1297,7 +1443,7 @@ class Jogo:
             self.acertou3_secundaria = 1
             self.bolinhas = []
             self.iniciar_bolinhas()
-
+            self.erro = False
             #reseta primeira fase nivel 1
             self.tipo_acao_fase1 = "cor_primaria"
 
@@ -1310,9 +1456,24 @@ class Jogo:
             self.tipo_acao_menu = "fase1"
             if self.fase_2 == "Desbloqueada":
                 self.tipo_acao_menu = "fase1e2"
-            
+
+            botao_menu = BotaoEspecial(
+                x=SCREEN_WIDTH * 0.409,  # Exemplo de novo valor para 'x'
+                y=SCREEN_HEIGHT * 0.33,  # Exemplo de novo valor para 'y'
+                largura=SCREEN_HEIGHT * 0.26,
+                altura=SCREEN_HEIGHT * 0.11,
+                texto="MENU",
+                cor_normal=(255, 220, 140),  # Cor normal (#FFA12B)
+                cor_hover=(255, 220, 100),  # Cor hover (#F78900)
+                cor_sombra=(204, 153, 100),  # Cor da sombra (#915100)
+                cor_texto=(0, 0, 0),
+                fonte=pygame.font.SysFont("Baskerville", 40), 
+                acao=lambda:self.menu_nome(),
+            )
+            self.acao_ajuda_menu_fases()
             self.menu_atual = "menu_fases"
             while self.running:
+                
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 
                 for event in pygame.event.get():
@@ -1323,6 +1484,9 @@ class Jogo:
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         pos = pygame.mouse.get_pos()
                         self.verificar_clique(pos)  # Verifica os cliques nos botões principais
+
+                        if botao_menu.foi_clicado(pos):
+                            botao_menu.acao()
                         
                         # Verifique o clique no botão especial menu
                         
@@ -1333,97 +1497,26 @@ class Jogo:
                 # Desenha o botão especial (com efeito hover)
                 
                 # Atualiza a tela
+                botao_menu.desenhar(self.tela, ativo=botao_menu.rect.collidepoint(mouse_x, mouse_y))
                 pygame.display.flip()
                 self.clock.tick(60)
 
 
     def acao_ajuda_jogo(self):
-        print("Ação: Ajuda")
-        
-        # Carregar as imagens para exibir na tela de ajuda
-        imagens_ajuda = [
-            pygame.image.load("assets/layouts/Ajuda_1.png"),
-            pygame.image.load("assets/layouts/Ajuda_2.png"),
-            pygame.image.load("assets/layouts/Ajuda_3.png"),
-            pygame.image.load("assets/layouts/Ajuda_4.png"),
-            pygame.image.load("assets/layouts/Ajuda_5.png"),
-        ]
-        
-        # Redimensionar as imagens conforme necessário (se necessário)
-        imagens_ajuda = [pygame.transform.smoothscale(img, (SCREEN_WIDTH, SCREEN_HEIGHT)) for img in imagens_ajuda]
+        self.rodar_video("tutorial")
 
-        # Variáveis para controlar o tempo de exibição das imagens
-        tempo_espera = 3000  # Tempo de espera entre as imagens (em milissegundos)
-        indice_imagem = 0
-        tempo_inicio = pygame.time.get_ticks()  # Marca o tempo inicial
-
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            # Verificar se o tempo de espera passou
-            tempo_atual = pygame.time.get_ticks()
-            if tempo_atual - tempo_inicio > tempo_espera:
-                indice_imagem += 1
-                if indice_imagem >= len(imagens_ajuda):
-                    break  # Finaliza a função após exibir todas as imagens
-                tempo_inicio = tempo_atual  # Atualiza o tempo de início para a próxima imagem
-
-            # Desenhar a imagem atual na tela
-            self.tela.fill((0, 0, 0))  # Limpa a tela com fundo preto
-            self.tela.blit(imagens_ajuda[indice_imagem], (0, 0))  # Exibe a imagem
-
-            pygame.display.flip()
-            self.clock.tick(60)  # Limita o loop a 60 quadros por segundo
-
+    def acao_ajuda_menu_fases(self):
+        if self.fase_2 == "Bloqueada":
+            self.rodar_video("como_jogar_1")
+        else:
+            self.rodar_video("como_jogar_1")
+            self.rodar_video("como_jogar_2")
 
     def acao_ajuda_fase1(self):
-        print("acao_ajuda_fase1")        
-        # Carregar as imagens para exibir na tela de ajuda
-        imagens_ajuda = [
-            pygame.image.load("assets/layouts/videos_cores_primarias.png"),
-            pygame.image.load("assets/layouts/tela_escolha_cor_primaria.png"),
-            pygame.image.load("assets/layouts/tutorial_seleciona_cor_primaria.png"),
-            pygame.image.load("assets/layouts/tutorial_erra_cor_primaria.png"),
-            pygame.image.load("assets/layouts/tutorial_tenta_novamente.png"),
-            pygame.image.load("assets/layouts/tutorial_tenta_novamente_2.png"),
-            pygame.image.load("assets/layouts/mensagem_acertou.png"),
-        ]
-        
-        # Redimensionar as imagens conforme necessário (se necessário)
-        imagens_ajuda = [pygame.transform.smoothscale(img, (SCREEN_WIDTH, SCREEN_HEIGHT)) for img in imagens_ajuda]
-
-        # Variáveis para controlar o tempo de exibição das imagens
-        tempo_espera = 3000  # Tempo de espera entre as imagens (em milissegundos)
-        indice_imagem = 0
-        tempo_inicio = pygame.time.get_ticks()  # Marca o tempo inicial
-
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            # Verificar se o tempo de espera passou
-            tempo_atual = pygame.time.get_ticks()
-            if tempo_atual - tempo_inicio > tempo_espera:
-                indice_imagem += 1
-                if indice_imagem >= len(imagens_ajuda):
-                    break  # Finaliza a função após exibir todas as imagens
-                tempo_inicio = tempo_atual  # Atualiza o tempo de início para a próxima imagem
-
-            # Desenhar a imagem atual na tela
-            self.tela.fill((0, 0, 0))  # Limpa a tela com fundo preto
-            self.tela.blit(imagens_ajuda[indice_imagem], (0, 0))  # Exibe a imagem
-
-            pygame.display.flip()
-            self.clock.tick(60)  # Limita o loop a 60 quadros por segun
+        self.rodar_video("como_jogar_1")
 
     def acao_ajuda_fase2(self):
-        print("acao_ajuda_faseq")
-        # Adicione aqui a lógica para exibir a tela de ajuda
+        self.rodar_video("como_jogar_2")
 
     def ler_log(self, caminho_arquivo):
         try:

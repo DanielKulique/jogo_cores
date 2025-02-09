@@ -492,5 +492,32 @@ class Audio:
             print(f"Erro ao reproduzir o áudio '{chave}': {e}")
 
 
+class BotaoVoltar:
+    def __init__(self, x, y, raio=30, acao=None):
+        self.x = x
+        self.y = y
+        self.raio = raio
+        self.acao = acao  # Função a ser chamada ao clicar
 
+    def desenhar(self, tela):
+        # Desenha o botão circular preto
+        pygame.draw.circle(tela, (0, 0, 0), (self.x, self.y), self.raio)
+
+        # Desenha a seta branca
+        pontos_seta = [
+            (self.x - self.raio // 2, self.y),  # Ponta da seta
+            (self.x + self.raio // 4, self.y - self.raio // 3),  # Canto superior
+            (self.x + self.raio // 4, self.y - self.raio // 6),  # Meio superior
+            (self.x + self.raio // 2, self.y - self.raio // 6),  # Linha reta superior
+            (self.x + self.raio // 2, self.y + self.raio // 6),  # Linha reta inferior
+            (self.x + self.raio // 4, self.y + self.raio // 6),  # Meio inferior
+            (self.x + self.raio // 4, self.y + self.raio // 3)   # Canto inferior
+        ]
+        pygame.draw.polygon(tela, (255, 255, 255), pontos_seta)
+
+    def foi_clicado(self, pos):
+        # Verifica se o clique está dentro do círculo
+        distancia = ((pos[0] - self.x) ** 2 + (pos[1] - self.y) ** 2) ** 0.5
+        if distancia <= self.raio and self.acao:
+            self.acao()
 
